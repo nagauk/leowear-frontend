@@ -1,0 +1,83 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
+
+@Component({
+  selector: 'app-register',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink],
+  template: `
+    <div class="page-container">
+      <div class="auth-card">
+        <div class="text-center mb-4">
+          <h2 class="display-font">Create Account</h2>
+          <p class="text-muted">Join ClothStore today</p>
+        </div>
+
+        <form (ngSubmit)="onSubmit()">
+          <div class="mb-3">
+            <label class="form-label">Username *</label>
+            <input type="text" class="form-control cs-form-control" [(ngModel)]="form.username" name="username" required minlength="3">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email *</label>
+            <input type="email" class="form-control cs-form-control" [(ngModel)]="form.email" name="email" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password *</label>
+            <input type="password" class="form-control cs-form-control" [(ngModel)]="form.password" name="password" required minlength="6">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control cs-form-control" [(ngModel)]="form.fullName" name="fullName">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Phone</label>
+            <input type="text" class="form-control cs-form-control" [(ngModel)]="form.phone" name="phone">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Address</label>
+            <textarea class="form-control cs-form-control" [(ngModel)]="form.address" name="address" rows="2"></textarea>
+          </div>
+
+          @if (error) {
+            <div class="alert alert-danger small">{{ error }}</div>
+          }
+
+          <button type="submit" class="btn btn-cs-primary w-100 btn-lg" [disabled]="loading">
+            @if (loading) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            Create Account
+          </button>
+        </form>
+
+        <p class="text-center mt-4 mb-0 text-muted small">
+          Already have an account? <a routerLink="/login" class="fw-semibold" style="color:var(--cs-accent)">Sign In</a>
+        </p>
+      </div>
+    </div>
+  `
+})
+export class RegisterComponent {
+  form = { username: '', email: '', password: '', fullName: '', phone: '', address: '' };
+  loading = false;
+  error = '';
+
+  constructor(private auth: AuthService, private router: Router) {}
+
+  onSubmit() {
+    this.loading = true;
+    this.error = '';
+    this.auth.register(this.form).subscribe({
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err.error?.message || 'Registration failed';
+      }
+    });
+  }
+}

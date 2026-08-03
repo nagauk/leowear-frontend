@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["feedback.component.ts"],
+  "sourcesContent": ["\n    .star-btn {\n      font-size: 1.5rem; color: #d1d5db; border: none; background: transparent; padding: 0 4px;\n    }\n    .star-btn.active { color: #f59e0b; }\n  "],
+  "mappings": ";AACI,CAAA;AACE,aAAA;AAAmB,SAAA;AAAgB,UAAA;AAAc,cAAA;AAAyB,WAAA,EAAA;;AAE5E,CAHA,QAGA,CAAA;AAAmB,SAAA;;",
+  "names": []
+}

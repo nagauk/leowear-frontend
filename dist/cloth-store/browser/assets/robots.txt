@@ -1,0 +1,22 @@
+# robots.txt — Leo Wear
+# Crawled by Google, Bing, etc. Public storefront only; authenticated areas excluded.
+
+User-agent: *
+Allow: /
+Allow: /products
+Allow: /products/
+
+# Authenticated / account-only — irrelevant to SEO, exclude to save crawl budget
+Disallow: /admin
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /orders
+Disallow: /pay/
+Disallow: /verify
+Disallow: /change-password
+Disallow: /complaints
+Disallow: /forgot-password
+
+# Point crawlers to the dynamic sitemap (backend-served so newly added
+# products are picked up on the next crawl without rebuild).
+Sitemap: /api/sitemap.xml

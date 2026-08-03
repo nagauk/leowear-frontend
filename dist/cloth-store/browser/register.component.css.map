@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["register.component.ts"],
+  "sourcesContent": ["\n    .pwd-rules li { color: #9ca3af; }\n    .pwd-rules li.ok { color: #059669; font-weight: 500; }\n  "],
+  "mappings": ";AACI,CAAA,UAAA;AAAgB,SAAA;;AAChB,CADA,UACA,EAAA,CAAA;AAAmB,SAAA;AAAgB,eAAA;;",
+  "names": []
+}

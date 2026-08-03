@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["cart.component.ts"],
+  "sourcesContent": ["\n    .address-option {\n      display: flex;\n      align-items: flex-start;\n      gap: 4px;\n      padding: 10px;\n      border: 1px solid #e5e7eb;\n      border-radius: 8px;\n      cursor: pointer;\n      margin: 0;\n    }\n    .address-option.selected {\n      border-color: #e94560;\n      background: #fff5f7;\n    }\n  "],
+  "mappings": ";AACI,CAAA;AACE,WAAA;AACA,eAAA;AACA,OAAA;AACA,WAAA;AACA,UAAA,IAAA,MAAA;AACA,iBAAA;AACA,UAAA;AACA,UAAA;;AAEF,CAVA,cAUA,CAAA;AACE,gBAAA;AACA,cAAA;;",
+  "names": []
+}
