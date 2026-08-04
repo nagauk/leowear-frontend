@@ -83,7 +83,7 @@ import { CartItem } from '../../core/models/models';
                 @if (deliveryFee > 0 && freeMin > 0) {
                   <div class="small text-muted mb-2">
                     Free delivery on orders ₹{{ freeMin | number:'1.0-0' }}+
-                    (add ₹{{ (freeMin - cart.total()) | number:'1.0-0' }} more)
+                    (<b class="text-success">add ₹{{ (freeMin - cart.total()) | number:'1.0-0' }} more</b>)
                   </div>
                 }
                 <hr>
@@ -496,7 +496,9 @@ export class CartComponent implements OnInit {
         }
         this.success = true;
         this.cart.clear();
-        setTimeout(() => this.router.navigate(['/orders']), 1500);
+        setTimeout(() => {
+          this.router.navigate(['/orders']);
+        }, 1800);
       },
       error: (err) => {
         this.placing = false;

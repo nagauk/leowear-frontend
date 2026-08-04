@@ -155,6 +155,23 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+/**
+ * Response of `POST /api/admin/uploads/image`. Includes both the final
+ * Cloudinary asset metadata and the original source dimensions so the admin
+ * can see "resized 2.4 MB → 940 KB, 4032×3024 → 1600×1200".
+ */
+export interface CloudinaryUploadResponse {
+  url: string;
+  publicId: string;
+  bytes: number;
+  width: number;
+  height: number;
+  originalBytes: number;
+  originalWidth: number;
+  originalHeight: number;
+  format: string;
+}
+
 export interface Page<T> {
   content: T[];
   totalElements: number;

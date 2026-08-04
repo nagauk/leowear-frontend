@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProductService } from '../../core/services/product.service';
+import { UploadService } from '../../core/services/upload.service';
 import { Product, Category, ProductVariant, ProductImage } from '../../core/models/models';
 import { sizesForGuide, colorsForCategory, MATERIALS, FEATURES } from '../../core/catalog/size-color.catalog';
 import { SeoService } from '../../core/services/seo.service';
@@ -135,7 +136,13 @@ import { SeoService } from '../../core/services/seo.service';
                       {{ img.primary ? 'Prime' : i + 1 }}
                     </span>
                     <input class="form-control cs-form-control" style="flex:1;min-width:200px"
-                           [(ngModel)]="img.url" [name]="'imgUrl'+i" placeholder="Image URL">
+                           [(ngModel)]="img.url" [name]="'imgUrl'+i" placeholder="Image URL (paste or upload)">
+                    <label class="btn btn-sm btn-outline-secondary mb-0" style="cursor:pointer" title="Upload image to Cloudinary">
+                      <i class="bi" [class.bi-cloud-upload]="!img.uploading" [class.bi-spinner]="img.uploading" [class.bi-spin]="img.uploading"></i>
+                      {{ img.uploading ? 'Uploading…' : 'Upload' }}
+                      <input type="file" accept="image/jpeg,image/png,image/webp" class="d-none"
+                             (change)="onImageFileSelected($event, i)" [disabled]="img.uploading">
+                    </label>
                     <select class="form-select cs-form-control" style="width:130px"
                             [(ngModel)]="img.color" [name]="'imgColor'+i">
                       <option value="">Any color</option>
@@ -150,12 +157,18 @@ import { SeoService } from '../../core/services/seo.service';
                         <option [ngValue]="s">{{ s }}</option>
                       }
                     </select>
+                    @if (img.previewUrl && !img.url) {
+                      <img [src]="img.previewUrl" width="40" height="48" style="object-fit:cover;border-radius:4px;" title="Local preview">
+                    }
                     @if (img.url) {
-                      <img [src]="img.url" width="40" height="48" style="object-fit:cover;border-radius:4px;">
+                      <img [src]="img.url" width="40" height="48" style="object-fit:cover;border-radius:4px;" title="Cloudinary image">
                     }
                     <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeImageRow(i)">
                       <i class="bi bi-x"></i>
                     </button>
+                    @if (img.uploadError) {
+                      <div class="text-danger small w-100">{{ img.uploadError }}</div>
+                    }
                   </div>
                 }
               </div>
@@ -366,7 +379,11 @@ export class AdminProductsComponent implements OnInit {
     return c?.name || '';
   }
 
-  constructor(private productService: ProductService, private seo: SeoService) {}
+  constructor(
+    private productService: ProductService,
+    private uploadService: UploadService,
+    private seo: SeoService
+  ) {}
 
   ngOnInit() {
     this.seo.setPage({
@@ -405,15 +422,23 @@ export class AdminProductsComponent implements OnInit {
     return {
       name: '', description: '', price: 0, originalPrice: null, stock: 0,
       brand: 'Leo Wear', material: '', features: '', categoryId: null,
-      images: [{ url: '', color: '', size: '', primary: true, sortOrder: 0 }] as ProductImage[],
+      images: [this.firstImageRow()],
       variants: [] as ProductVariant[]
+    };
+  }
+
+  /** Initial image row — primary by default, with upload-state fields. */
+  firstImageRow() {
+    return {
+      url: '', color: '', size: '', primary: true, sortOrder: 0,
+      previewUrl: undefined, uploading: false, uploadError: ''
     };
   }
 
   resetForm() { this.form = this.emptyForm(); this.formParentId = null; this.formSubcategories = []; this.selectedFeatures = []; }
 
   addImageRow() {
-    this.form.images = [...this.form.images, { url: '', color: '', size: '', primary: false, sortOrder: this.form.images.length }];
+    this.form.images = [...this.form.images, this.newImageRowState()];
   }
 
   removeImageRow(i: number) {
@@ -425,6 +450,88 @@ export class AdminProductsComponent implements OnInit {
 
   setPrimaryImage(i: number) {
     this.form.images.forEach((img: ProductImage, idx: number) => img.primary = idx === i);
+  }
+
+  /**
+   * Handle a file picked from the per-row file input. Previews the chosen
+   * file locally, then POSTs to the backend which resizes to the configured
+   * byte target and uploads to Cloudinary. On success, the returned URL is
+   * written into the row's URL field; the existing JSON save flow then
+   * persists it via the standard product create/update endpoint.
+   */
+  onImageFileSelected(ev: Event, i: number) {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    // Client-side guards (backend re-validates).
+    if (!file.type || !file.type.startsWith('image/')) {
+      this.formError = 'Please choose an image file (JPEG, PNG, or WEBP)';
+      input.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.formError = 'Image must be under 5MB';
+      input.value = '';
+      return;
+    }
+
+    const img = this.form.images[i];
+    img.uploadError = '';
+    img.uploading = true;
+    img.previewUrl = undefined;
+
+    // Local preview via FileReader while the upload is in flight.
+    const reader = new FileReader();
+    reader.onload = () => {
+      img.previewUrl = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+
+    this.uploadService.uploadImage(file).subscribe({
+      next: (res) => {
+        img.uploading = false;
+        img.previewUrl = undefined;
+        img.url = res.data?.url || '';
+        input.value = ''; // allow re-selecting the same file later
+      },
+      error: (err) => {
+        img.uploading = false;
+        img.uploadError = err.error?.message || 'Upload failed';
+        input.value = '';
+      }
+    });
+  }
+
+  /** Initialise per-row upload state when adding a new image row. */
+  private newImageRowState(): any {
+    return {
+      url: '',
+      color: '',
+      size: '',
+      primary: false,
+      sortOrder: this.form.images.length,
+      previewUrl: undefined,
+      uploading: false,
+      uploadError: ''
+    };
+  }
+
+  /**
+   * Ensure all image rows have the upload-state fields the template depends
+   * on. Used when loading an existing product (rows may lack these.
+   */
+  private ensureImageRowState(rows: any[]): any[] {
+    return rows.map(r => ({
+      url: r.url || '',
+      color: r.color || '',
+      size: r.size || '',
+      primary: !!r.primary,
+      sortOrder: r.sortOrder || 0,
+      previewUrl: undefined,
+      uploading: false,
+      uploadError: ''
+    }));
   }
 
   resolveParentFromCategory(categoryId: number | null) {
@@ -516,14 +623,14 @@ export class AdminProductsComponent implements OnInit {
         const full = res.data || p;
         this.editing = full;
         const images = (full.images && full.images.length)
-          ? full.images.map(img => ({
+          ? this.ensureImageRowState(full.images.map(img => ({
               url: img.url,
               color: img.color || '',
               size: img.size || '',
               primary: !!img.primary,
               sortOrder: img.sortOrder || 0
-            }))
-          : [{ url: full.imageUrl || '', color: '', size: '', primary: true, sortOrder: 0 }];
+            })))
+          : [this.firstImageRow()];
         this.form = {
           name: full.name,
           description: full.description || '',
@@ -551,8 +658,8 @@ export class AdminProductsComponent implements OnInit {
       error: () => {
         // Fallback to list row data
         const images = (p.images && p.images.length)
-          ? p.images.map(img => ({ ...img }))
-          : [{ url: p.imageUrl || '', color: '', size: '', primary: true, sortOrder: 0 }];
+          ? this.ensureImageRowState(p.images.map(img => ({ ...img })))
+          : [this.firstImageRow()];
         this.form = {
           name: p.name,
           description: p.description,

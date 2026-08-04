@@ -397,8 +397,8 @@ var customerOnlyGuard = () => {
 
 // src/app/app.routes.ts
 var routes = [
-  { path: "", loadComponent: () => import("./chunk-HQE5HEK5.js").then((m) => m.HomeComponent), canActivate: [customerOnlyGuard] },
-  { path: "products", loadComponent: () => import("./chunk-TAFI4P6H.js").then((m) => m.ProductListComponent), canActivate: [customerOnlyGuard] },
+  { path: "", loadComponent: () => import("./chunk-EVRECNL4.js").then((m) => m.HomeComponent), canActivate: [customerOnlyGuard] },
+  { path: "products", loadComponent: () => import("./chunk-OC7CMUCY.js").then((m) => m.ProductListComponent), canActivate: [customerOnlyGuard] },
   { path: "products/:id", loadComponent: () => import("./chunk-2QY3DH5X.js").then((m) => m.ProductDetailComponent), canActivate: [customerOnlyGuard] },
   { path: "cart", loadComponent: () => import("./chunk-5UMCURUA.js").then((m) => m.CartComponent), canActivate: [customerOnlyGuard] },
   { path: "wishlist", loadComponent: () => import("./chunk-3QVRVXB4.js").then((m) => m.WishlistComponent), canActivate: [customerOnlyGuard] },
@@ -417,7 +417,7 @@ var routes = [
     canActivate: [staffGuard],
     children: [
       { path: "", loadComponent: () => import("./chunk-Q24JKLDG.js").then((m) => m.DashboardComponent), canActivate: [adminGuard] },
-      { path: "products", loadComponent: () => import("./chunk-PRXOWE2K.js").then((m) => m.AdminProductsComponent) },
+      { path: "products", loadComponent: () => import("./chunk-M3XR5WUD.js").then((m) => m.AdminProductsComponent) },
       { path: "orders", loadComponent: () => import("./chunk-ARICUZ7K.js").then((m) => m.AdminOrdersComponent) },
       { path: "returns", loadComponent: () => import("./chunk-B6YSV4RH.js").then((m) => m.AdminReturnsComponent), canActivate: [adminGuard] },
       { path: "settings", loadComponent: () => import("./chunk-RR7QXLKU.js").then((m) => m.AdminSettingsComponent) },

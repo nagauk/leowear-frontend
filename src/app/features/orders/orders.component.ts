@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router, NavigationEnd } from '@angular/router';
+import { filter, Subscription } from 'rxjs';
 import { OrderService } from '../../core/services/order.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Order } from '../../core/models/models';
@@ -94,12 +95,17 @@ import { Order } from '../../core/models/models';
     </div>
   `
 })
-export class OrdersComponent implements OnInit {
+export class OrdersComponent implements OnInit, OnDestroy {
   orders: Order[] = [];
   loading = true;
   error = '';
+  private navSub?: Subscription;
 
-  constructor(private orderService: OrderService, private seo: SeoService) {}
+  constructor(
+    private orderService: OrderService,
+    private seo: SeoService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.seo.setPage({
@@ -107,19 +113,34 @@ export class OrdersComponent implements OnInit {
       description: 'Track your Leo Wear orders and view order history.',
       canonicalPath: '/orders'
     });
+
+    // Always load on first entry
     this.load();
+
+    // Also reload every time we land on /orders (covers the redirect from cart)
+    this.navSub = this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe(e => {
+        if (e.urlAfterRedirects.startsWith('/orders')) {
+          this.load();
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this.navSub?.unsubscribe();
   }
 
   load() {
     this.loading = true;
     this.error = '';
     this.orderService.getMyOrders(0, 50).subscribe({
-      next: res => {
+      next: (res) => {
         const data: any = res?.data;
-        if (Array.isArray(data)) {
-          this.orders = data;
-        } else if (data?.content && Array.isArray(data.content)) {
-          this.orders = data.content;
+        if (data?.content && Array.isArray(data.content)) {
+          this.orders = data.content;               // normal Spring Page
+        } else if (Array.isArray(data)) {
+          this.orders = data;                       // fallback flat list
         } else if (data?.orders && Array.isArray(data.orders)) {
           this.orders = data.orders;
         } else {
