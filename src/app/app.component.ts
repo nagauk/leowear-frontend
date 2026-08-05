@@ -126,7 +126,7 @@ import { WishlistService } from './core/services/wishlist.service';
           <div class="col-md-3">
             <h5>Contact</h5>
             <p class="small mb-1"><i class="bi bi-envelope me-2"></i>hello&#64;clothstore.com</p>
-            <p class="small"><i class="bi bi-telephone me-2"></i>+1 (555) 123-4567</p>
+            <p class="small"><i class="bi bi-telephone me-2"></i>+91 7989398156</p>
           </div>
         </div>
         <div class="footer-bottom text-center">
