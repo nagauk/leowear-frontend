@@ -16,50 +16,95 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [CommonModule, NgTemplateOutlet, RouterLink],
   template: `
-    <section class="hero-section">
-      <div class="container position-relative">
+    <section class="hero-section position-relative overflow-hidden">
+
+      <!-- Grid Background with Men, Women & Kids Fashion -->
+      <div class="hero-bg-grid position-absolute top-0 start-0 w-100 h-100 d-none d-md-grid">
+        <div class="grid-tile tile-men"></div>
+        <div class="grid-tile tile-women"></div>
+        <div class="grid-tile tile-kids"></div>
+        <div class="grid-tile tile-denim"></div>
+      </div>
+
+      <!-- Gradient Overlay for High Text Readability -->
+      <div class="hero-dark-overlay position-absolute top-0 start-0 w-100 h-100"></div>
+
+      <!-- Hero Content & Cards Layer -->
+      <div class="container position-relative z-2 py-5 my-lg-4">
         <div class="row align-items-center g-4">
-          <div class="col-lg-6">
-            <span class="hero-eyebrow">New Season · Spring '26</span>
-            <h1>Elevate Your<br>Style Everyday</h1>
-            <p>Discover <strong>Leo Wear</strong> — premium fashion for men, women &amp; kids. Comfort meets timeless design.</p>
-            <div class="d-flex gap-3 mt-4 flex-wrap">
-              <a routerLink="/products" class="btn btn-cs-primary btn-lg">Shop Now</a>
-              <a routerLink="/products" [queryParams]="{search: 'Leo Wear'}" class="btn btn-outline-light btn-lg">Leo Wear Picks</a>
+
+          <!-- Left Column: Typography & Actions -->
+          <div class="col-lg-6 text-center text-lg-start">
+            <span class="hero-eyebrow d-inline-block px-3 py-1 rounded-pill mb-3 text-uppercase fw-semibold">
+              New Season · Spring '26
+            </span>
+
+            <h1 class="display-2 fw-bold text-white mb-3 hero-title">
+              Elevate Your<br>
+              <span class="text-accent">Style Everyday</span>
+            </h1>
+
+            <p class="lead hero-description mb-4 pe-lg-4">
+              Discover <strong>Leo Wear</strong> — premium fashion for men, women &amp; kids. Comfort meets timeless design.
+            </p>
+
+            <div class="d-flex gap-3 justify-content-center justify-content-lg-start flex-wrap">
+              <a routerLink="/products" class="btn btn-accent btn-lg px-4 py-3 fw-bold rounded-2">
+                Shop Now
+              </a>
+              <a routerLink="/products" [queryParams]="{search: 'Leo Wear'}" class="btn btn-outline-custom btn-lg px-4 py-3 fw-bold rounded-2">
+                Leo Wear Picks
+              </a>
             </div>
           </div>
+
+          <!-- Right Column: Glassmorphism Info Cards -->
           <div class="col-lg-6 d-none d-lg-block">
-            <div class="hero-collage">
-              <div class="hero-card hero-card-1">
-                <i class="bi bi-stars"></i>
+            <div class="hero-card-stack ms-auto me-lg-4">
+
+              <div class="glass-info-card p-3 mb-3 rounded-3 d-flex align-items-center gap-3">
+                <div class="card-icon-box rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-stars"></i>
+                </div>
                 <div>
-                  <strong>Our Choice</strong>
-                  <span>Hand-picked Leo Wear styles</span>
+                  <strong class="d-block text-dark fw-bold">Our Choice</strong>
+                  <span class="text-secondary small">Hand-picked Leo Wear styles</span>
                 </div>
               </div>
-              <div class="hero-card hero-card-2">
-                <i class="bi bi-truck"></i>
+
+              <div class="glass-info-card p-3 mb-3 rounded-3 d-flex align-items-center gap-3">
+                <div class="card-icon-box rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-truck"></i>
+                </div>
                 <div>
-                  <strong>Free Shipping</strong>
-                  <span>{{ 'Over ₹' + (freeDeliveryMin | number:'1.0-0') }}</span>
+                  <strong class="d-block text-dark fw-bold">Free Shipping</strong>
+                  <span class="text-secondary small">{{ 'Over ₹' + (freeDeliveryMin | number:'1.0-0') }}</span>
                 </div>
               </div>
-              <div class="hero-card hero-card-3">
-                <i class="bi bi-arrow-repeat"></i>
+
+              <div class="glass-info-card p-3 mb-3 rounded-3 d-flex align-items-center gap-3">
+                <div class="card-icon-box rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-arrow-repeat"></i>
+                </div>
                 <div>
-                  <strong>Easy Returns</strong>
-                  <span>7-day window*</span>
+                  <strong class="d-block text-dark fw-bold">Easy Returns</strong>
+                  <span class="text-secondary small">7-day window*</span>
                 </div>
               </div>
-              <div class="hero-card hero-card-4">
-                <i class="bi bi-shield-check"></i>
+
+              <div class="glass-info-card p-3 rounded-3 d-flex align-items-center gap-3">
+                <div class="card-icon-box rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-shield-check"></i>
+                </div>
                 <div>
-                  <strong>Secure Checkout</strong>
-                  <span>Verified payments</span>
+                  <strong class="d-block text-dark fw-bold">Secure Checkout</strong>
+                  <span class="text-secondary small">Verified payments</span>
                 </div>
               </div>
+
             </div>
           </div>
+
         </div>
       </div>
     </section>
