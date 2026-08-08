@@ -83,7 +83,7 @@ import { CartItem } from '../../core/models/models';
                 @if (deliveryFee > 0 && freeMin > 0) {
                   <div class="small text-muted mb-2">
                     Free delivery on orders ₹{{ freeMin | number:'1.0-0' }}+
-                    (<b class="text-success">add ₹{{ (freeMin - cart.total()) | number:'1.0-0' }} more</b>)
+                    (add ₹{{ (freeMin - cart.total()) | number:'1.0-0' }} more)
                   </div>
                 }
                 <hr>
@@ -196,14 +196,14 @@ import { CartItem } from '../../core/models/models';
                           <div class="small text-muted">UPI / Card / NetBanking — simulated secure payment</div>
                         </div>
                       </label>
-                      <!--label class="border rounded p-2 d-flex align-items-center gap-2" style="cursor:pointer"
+                      <label class="border rounded p-2 d-flex align-items-center gap-2" style="cursor:pointer"
                              [class.border-danger]="paymentMethod==='COD'" [class.bg-light]="paymentMethod==='COD'">
                         <input type="radio" name="pay" [(ngModel)]="paymentMethod" value="COD">
                         <div>
                           <div class="fw-semibold">Cash on Delivery</div>
                           <div class="small text-muted">Pay when your order arrives</div>
                         </div>
-                      </label-->
+                      </label>
                     </div>
                   </div>
 
@@ -496,9 +496,7 @@ export class CartComponent implements OnInit {
         }
         this.success = true;
         this.cart.clear();
-        setTimeout(() => {
-          this.router.navigate(['/orders']);
-        }, 1800);
+        setTimeout(() => this.router.navigate(['/orders']), 1500);
       },
       error: (err) => {
         this.placing = false;

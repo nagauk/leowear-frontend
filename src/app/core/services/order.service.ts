@@ -73,6 +73,13 @@ export class OrderService {
     });
   }
 
+  /** Staff-only: download single-order invoice PDF (A6 packing/shipping invoice). */
+  downloadInvoice(orderId: number): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/orders/${orderId}/invoice`, {
+      responseType: 'blob'
+    });
+  }
+
   createReturn(data: { orderId: number; reason: string; orderItemId?: number; quantity?: number }): Observable<ApiResponse<ReturnRequest>> {
     return this.http.post<ApiResponse<ReturnRequest>>(`${environment.apiUrl}/returns`, data);
   }

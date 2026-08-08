@@ -257,7 +257,7 @@ import { environment } from '../../../environments/environment';
               <span class="badge-leo">Our Choice</span>
             }
           </div>@if (p.originalPrice && p.originalPrice > p.price) {
-                                              <span class="align-right badge-sale">SALE</span>
+                                              <span class="sale-tag badge-sale">SALE</span>
                                             }
         </a>
         <div class="product-body">

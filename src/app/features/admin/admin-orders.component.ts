@@ -119,7 +119,7 @@ import { SeoService } from '../../core/services/seo.service';
                     <th>Payment</th>
                     <th>Status</th>
                     <th>Date</th>
-                    <th style="min-width:170px">Update Status</th>
+                    <th style="min-width:170px">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -213,20 +213,34 @@ import { SeoService } from '../../core/services/seo.service';
                       </td>
                       <td class="small">{{ o.createdAt | date:'mediumDate' }}</td>
                       <td>
-                        <div class="status-cell">
-                          <select class="form-select form-select-sm status-select"
-                                  [ngModel]="statusValue(o)"
-                                  (ngModelChange)="onStatusChange(o, $event)"
-                                  [disabled]="updatingId === o.id">
-                            @for (s of statuses; track s) {
-                              <option [ngValue]="s">{{ label(s) }}</option>
+                        <div class="d-flex flex-column gap-1">
+                          <button type="button"
+                                  class="btn btn-sm btn-outline-dark"
+                                  [disabled]="downloadingInvoiceId === o.id"
+                                  (click)="downloadInvoice(o)"
+                                  title="Download invoice PDF for shipping">
+                            @if (downloadingInvoiceId === o.id) {
+                              <span class="spinner-border spinner-border-sm me-1"></span>
+                            } @else {
+                              <i class="bi bi-receipt me-1"></i>
                             }
-                          </select>
-                          @if (updatingId === o.id) {
-                            <span class="spinner-border spinner-border-sm text-secondary ms-1"></span>
-                          } @else if (flashId === o.id) {
-                            <i class="bi bi-check-circle-fill text-success ms-1"></i>
-                          }
+                            Invoice
+                          </button>
+                          <div class="status-cell">
+                            <select class="form-select form-select-sm status-select"
+                                    [ngModel]="statusValue(o)"
+                                    (ngModelChange)="onStatusChange(o, $event)"
+                                    [disabled]="updatingId === o.id">
+                              @for (s of statuses; track s) {
+                                <option [ngValue]="s">{{ label(s) }}</option>
+                              }
+                            </select>
+                            @if (updatingId === o.id) {
+                              <span class="spinner-border spinner-border-sm text-secondary ms-1"></span>
+                            } @else if (flashId === o.id) {
+                              <i class="bi bi-check-circle-fill text-success ms-1"></i>
+                            }
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -276,6 +290,7 @@ export class AdminOrdersComponent implements OnInit {
   updatingId: number | null = null;
   flashId: number | null = null;
   downloadingPdf = false;
+  downloadingInvoiceId: number | null = null;
   toast: { type: 'ok' | 'err'; text: string } | null = null;
 
   page = 0;
@@ -442,6 +457,28 @@ export class AdminOrdersComponent implements OnInit {
     const d = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
     return `orders_${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}.pdf`;
+  }
+
+  /** Download A6 invoice PDF for one order (packing / shipping). */
+  downloadInvoice(o: Order) {
+    if (!this.isStaff() || !o.id || this.downloadingInvoiceId === o.id) return;
+    this.downloadingInvoiceId = o.id;
+    this.orderService.downloadInvoice(o.id).subscribe({
+      next: blob => {
+        this.downloadingInvoiceId = null;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invoice_${o.orderNumber || o.id}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.toast = { type: 'ok', text: `Invoice downloaded for ${o.orderNumber}` };
+      },
+      error: () => {
+        this.downloadingInvoiceId = null;
+        this.toast = { type: 'err', text: `Failed to download invoice for ${o.orderNumber}` };
+      }
+    });
   }
 
   load() {
