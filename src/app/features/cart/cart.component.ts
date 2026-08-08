@@ -196,14 +196,14 @@ import { CartItem } from '../../core/models/models';
                           <div class="small text-muted">UPI / Card / NetBanking — simulated secure payment</div>
                         </div>
                       </label>
-                      <label class="border rounded p-2 d-flex align-items-center gap-2" style="cursor:pointer"
+                      <!--label class="border rounded p-2 d-flex align-items-center gap-2" style="cursor:pointer"
                              [class.border-danger]="paymentMethod==='COD'" [class.bg-light]="paymentMethod==='COD'">
                         <input type="radio" name="pay" [(ngModel)]="paymentMethod" value="COD">
                         <div>
                           <div class="fw-semibold">Cash on Delivery</div>
                           <div class="small text-muted">Pay when your order arrives</div>
                         </div>
-                      </label>
+                      </label-->
                     </div>
                   </div>
 
