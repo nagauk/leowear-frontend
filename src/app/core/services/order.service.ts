@@ -50,6 +50,11 @@ export class OrderService {
     });
   }
 
+  /** Staff-only: mark COD order fully paid after cash collected at delivery. */
+  markFullyPaid(id: number): Observable<ApiResponse<Order>> {
+    return this.http.patch<ApiResponse<Order>>(`${environment.apiUrl}/orders/${id}/mark-paid`, null);
+  }
+
   /** Staff-only: set courier / tracking / AWB info on a CONFIRMED order. */
   updateShippingDetails(id: number, shippingDetails: string): Observable<ApiResponse<Order>> {
     return this.http.put<ApiResponse<Order>>(

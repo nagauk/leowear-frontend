@@ -55,15 +55,26 @@ import { Order } from '../../core/models/models';
                   </div>
                 }
               </div>
-              <div class="d-flex flex-wrap justify-content-between align-items-center border-top pt-3 gap-2">
+              <div class="d-flex flex-wrap justify-content-between align-items-start border-top pt-3 gap-2">
                 <div class="text-muted small">
                   @if (order.shippingAddress) { <i class="bi bi-geo-alt me-1"></i>{{ order.shippingAddress }} }
-                  <div class="mt-1">
+                  @if (order.shippingDetails && (order.status === 'SHIPPED' || order.status === 'DELIVERED')) {
+                    <div class="mt-1">
+                      <i class="bi bi-truck me-1"></i>
+                      <span class="text-dark">{{ order.shippingDetails }}</span>
+                    </div>
+                  }
+                  <div class="mt-2">
                     <span class="me-2">Payment:</span>
-                    @if ((order.paymentStatus || '').toUpperCase() === 'PAID') {
+                    @if (isFullyPaid(order)) {
                       <span class="badge bg-success">Paid</span>
                       @if (order.paymentRef) {
                         <span class="text-muted ms-1">· {{ order.paymentRef }}</span>
+                      }
+                    } @else if (isPartial(order)) {
+                      <span class="badge bg-info text-dark">Partial payment</span>
+                      @if (order.paymentMethod) {
+                        <span class="text-muted ms-1">({{ order.paymentMethod }})</span>
                       }
                     } @else {
                       <span class="badge bg-warning text-dark">{{ order.paymentStatus || 'PENDING' }}</span>
@@ -72,13 +83,24 @@ import { Order } from '../../core/models/models';
                       }
                     }
                   </div>
+                  @if (isPartial(order) || (canPay(order) && paidOf(order) > 0)) {
+                    <div class="mt-1">
+                      Paid: <strong class="text-dark">₹{{ paidOf(order) | number:'1.0-0' }}</strong>
+                      <span class="mx-1">·</span>
+                      Remaining: <strong class="text-danger">₹{{ remainingOf(order) | number:'1.0-0' }}</strong>
+                    </div>
+                  }
                 </div>
-                <div class="fw-bold fs-5">₹{{ order.totalAmount | number:'1.0-0' }}</div>
+                <div class="text-end">
+                  <div class="text-muted small">Order total</div>
+                  <div class="fw-bold fs-5">₹{{ order.totalAmount | number:'1.0-0' }}</div>
+                </div>
               </div>
               <div class="mt-3 d-flex flex-wrap gap-2">
                 @if (canPay(order)) {
                   <a [routerLink]="['/pay', order.id]" class="btn btn-sm btn-cs-primary">
-                    <i class="bi bi-credit-card me-1"></i> Pay Now
+                    <i class="bi bi-credit-card me-1"></i>
+                    {{ isPartial(order) ? ('Pay remaining ₹' + remainingOf(order)) : 'Pay Now' }}
                   </a>
                 }
                 @if (order.shippingDetails && (order.status === 'SHIPPED' || order.status === 'DELIVERED')) {
@@ -136,9 +158,33 @@ export class OrdersComponent implements OnInit {
     });
   }
 
+  isFullyPaid(order: Order): boolean {
+    return (order.paymentStatus || '').toUpperCase() === 'PAID';
+  }
+
+  isPartial(order: Order): boolean {
+    return (order.paymentStatus || '').toUpperCase() === 'PARTIAL';
+  }
+
+  paidOf(order: Order): number {
+    const p = Number((order as any).paidAmount);
+    if (!isNaN(p) && p >= 0) return p;
+    if (this.isPartial(order)) return Number((order as any).platformCharge) || 99;
+    if (this.isFullyPaid(order)) return Number(order.totalAmount) || 0;
+    return 0;
+  }
+
+  remainingOf(order: Order): number {
+    const r = Number((order as any).remainingAmount);
+    if (!isNaN(r) && r >= 0) return r;
+    const total = Number(order.totalAmount) || 0;
+    return Math.max(0, total - this.paidOf(order));
+  }
+
   canPay(order: Order): boolean {
-    const paid = (order.paymentStatus || '').toUpperCase() === 'PAID';
     const cancelled = ['CANCELLED', 'RETURNED'].includes((order.status || '').toUpperCase());
-    return !paid && !cancelled && (order.needsPayment !== false);
+    if (cancelled || this.isFullyPaid(order)) return false;
+    if (order.needsPayment === false) return false;
+    return this.isPartial(order) || (order.paymentStatus || '').toUpperCase() === 'PENDING' || order.needsPayment === true;
   }
 }

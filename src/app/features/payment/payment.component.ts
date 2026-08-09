@@ -21,9 +21,19 @@ import { SeoService } from '../../core/services/seo.service';
           } @else if (session) {
             <div class="mb-3">
               <div class="d-flex justify-content-between"><span class="text-muted">Order</span><strong>{{ session.orderNumber }}</strong></div>
-              <div class="d-flex justify-content-between mt-2"><span class="text-muted">Amount</span>
+              <div class="d-flex justify-content-between mt-2"><span class="text-muted">Amount due now</span>
                 <strong class="fs-4">₹{{ session.amount | number:'1.0-0' }}</strong>
               </div>
+              @if (session.codPlatformFee) {
+                <div class="alert alert-info small mt-3 mb-0">
+                  <strong>COD advance</strong> — paying ₹{{ session.amount | number:'1.0-0' }} online now.
+                  This amount is deducted from your order total; pay the rest when the order arrives.
+                </div>
+              } @else if (session.message && (session.message || '').toLowerCase().includes('remaining')) {
+                <div class="alert alert-info small mt-3 mb-0">
+                  <strong>Remaining balance</strong> — pay ₹{{ session.amount | number:'1.0-0' }} now to complete this COD order.
+                </div>
+              }
             </div>
 
             @if (session.mock) {

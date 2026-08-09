@@ -17,6 +17,8 @@ export interface PaymentSession {
   customerPhone?: string;
   mock: boolean;
   message?: string;
+  /** true when this session is collecting COD advance (deducted from order total) */
+  codPlatformFee?: boolean;
 }
 
 declare global {

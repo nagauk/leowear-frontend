@@ -162,9 +162,14 @@ import { environment } from '../../../environments/environment';
               <!-- Size -->
               @if (sizes.length > 0) {
                 <div class="mb-3">
-                  <div class="mb-2">
-                    <span class="fw-semibold">Size:</span>
-                    <span class="ms-1">{{ selectedSize || 'Select' }}</span>
+                  <div class="mb-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                      <span class="fw-semibold">Size:</span>
+                      <span class="ms-1">{{ selectedSize || 'Select' }}</span>
+                    </div>
+                    <button type="button" class="btn btn-link btn-sm p-0 size-chart-link" (click)="showSizeChart = true">
+                      <i class="bi bi-rulers me-1"></i>Size chart
+                    </button>
                   </div>
                   <div class="d-flex flex-wrap gap-2">
                     @for (s of sizes; track s) {
@@ -193,13 +198,70 @@ import { environment } from '../../../environments/environment';
                 }
               </div>
 
-              <div class="mb-3 delivery-estimate">
-                <i class="bi bi-truck me-2 text-success"></i>
-                <span class="text-muted">Delivery by</span>
-                <strong class="ms-1">{{ deliveryFromLabel }}</strong>
-                <span class="text-muted mx-1">–</span>
-                <strong>{{ deliveryToLabel }}</strong>
+              <!-- Delivery timeline: Order (T) → Ship (T+1–T+3) → Deliver (T+4–T+8) -->
+              <div class="mb-3 delivery-timeline">
+                <div class="dt-step">
+                  <div class="dt-icon"><i class="bi bi-bag-check"></i></div>
+                  <div class="dt-body">
+                    <div class="dt-label">Order</div>
+                    <div class="dt-date">{{ orderDateLabel }}</div>
+                  </div>
+                </div>
+                <div class="dt-connector"></div>
+                <div class="dt-step">
+                  <div class="dt-icon"><i class="bi bi-box-seam"></i></div>
+                  <div class="dt-body">
+                    <div class="dt-label">Ships</div>
+                    <div class="dt-date">{{ shipFromLabel }} – {{ shipToLabel }}</div>
+                  </div>
+                </div>
+                <div class="dt-connector"></div>
+                <div class="dt-step">
+                  <div class="dt-icon"><i class="bi bi-truck"></i></div>
+                  <div class="dt-body">
+                    <div class="dt-label">Delivery</div>
+                    <div class="dt-date">{{ deliveryFromLabel }} – {{ deliveryToLabel }}</div>
+                  </div>
+                </div>
               </div>
+
+              <!-- Size chart popup -->
+              @if (showSizeChart) {
+                <div class="size-chart-overlay" (click)="showSizeChart = false">
+                  <div class="size-chart-modal" (click)="$event.stopPropagation()">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                      <h5 class="mb-0">Size chart (India)</h5>
+                      <button type="button" class="btn-close" aria-label="Close" (click)="showSizeChart = false"></button>
+                    </div>
+                    <p class="small text-muted mb-3">Measurements in inches. Pick the size closest to your body measurements.</p>
+                    <div class="table-responsive">
+                      <table class="table table-sm table-bordered size-chart-table mb-0">
+                        <thead>
+                          <tr>
+                            <th>Size</th>
+                            <th>Chest</th>
+                            <th>Waist</th>
+                            <th>Hip</th>
+                            <th>Shoulder</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (row of sizeChartRows; track row.size) {
+                            <tr [class.table-active]="selectedSize === row.size">
+                              <td><strong>{{ row.size }}</strong></td>
+                              <td>{{ row.chest }}</td>
+                              <td>{{ row.waist }}</td>
+                              <td>{{ row.hip }}</td>
+                              <td>{{ row.shoulder }}</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                    <p class="small text-muted mt-3 mb-0">Tip: If between sizes, size up for a relaxed fit.</p>
+                  </div>
+                </div>
+              }
 
               @if (variantError) {
                 <div class="alert alert-warning py-2 small">{{ variantError }}</div>
@@ -321,20 +383,52 @@ import { environment } from '../../../environments/environment';
       border: 1px solid #e94560; border-radius: 4px; padding: 1px 6px;
       letter-spacing: 0.03em;
     }
-    .delivery-estimate {
+    .delivery-timeline {
       display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      font-size: 0.95rem;
-      padding: 0.6rem 0.85rem;
+      align-items: flex-start;
+      gap: 0;
+      padding: 0.85rem 0.75rem;
       background: #f0fdf4;
       border: 1px solid #bbf7d0;
-      border-radius: 8px;
-      color: #166534;
+      border-radius: 10px;
+      flex-wrap: wrap;
     }
-    .delivery-estimate strong {
-      color: #14532d;
+    .dt-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      flex: 1 1 auto;
+      min-width: 90px;
     }
+    .dt-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #166534; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; flex-shrink: 0;
+    }
+    .dt-body { line-height: 1.25; }
+    .dt-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: #166534; font-weight: 600; }
+    .dt-date { font-size: 0.8rem; font-weight: 600; color: #14532d; }
+    .dt-connector {
+      width: 18px; height: 2px; background: #86efac;
+      margin: 15px 4px 0; flex-shrink: 0; align-self: flex-start;
+    }
+    .size-chart-link { font-size: 0.85rem; color: #e94560; text-decoration: none; font-weight: 600; }
+    .size-chart-link:hover { text-decoration: underline; }
+    .size-chart-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      z-index: 1050; display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .size-chart-modal {
+      background: #fff; border-radius: 12px; max-width: 520px; width: 100%;
+      max-height: 90vh; overflow: auto; padding: 1.25rem 1.35rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    }
+    .size-chart-table th, .size-chart-table td {
+      text-align: center; vertical-align: middle; font-size: 0.85rem;
+    }
+    .size-chart-table th { background: #f8fafc; }
   `]
 })
 export class ProductDetailComponent implements OnInit, OnDestroy {
@@ -347,11 +441,25 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   variantError = '';
   loved = false;
   loveMsg = '';
+  showSizeChart = false;
 
   selectedSize = '';
   selectedColor = '';
   sizes: string[] = [];
   colors: string[] = [];
+
+  /** Standard Indian apparel size chart (inches). */
+  readonly sizeChartRows = [
+    { size: 'XS',  chest: '34–35', waist: '28–29', hip: '35–36', shoulder: '15.5' },
+    { size: 'S',   chest: '36–37', waist: '30–31', hip: '37–38', shoulder: '16' },
+    { size: 'M',   chest: '38–39', waist: '32–33', hip: '39–40', shoulder: '16.5' },
+    { size: 'L',   chest: '40–41', waist: '34–35', hip: '41–42', shoulder: '17' },
+    { size: 'XL',  chest: '42–43', waist: '36–37', hip: '43–44', shoulder: '17.5' },
+    { size: 'XXL', chest: '44–45', waist: '38–39', hip: '45–46', shoulder: '18' },
+    { size: '3XL', chest: '46–48', waist: '40–42', hip: '47–49', shoulder: '18.5' },
+    { size: '4XL', chest: '49–51', waist: '43–45', hip: '50–52', shoulder: '19' },
+    { size: '5XL', chest: '52–54', waist: '46–48', hip: '53–55', shoulder: '19.5' },
+  ];
 
   private touchStartX = 0;
   private sub?: Subscription;
@@ -395,9 +503,23 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     return this.product?.imageUrl || 'https://via.placeholder.com/600x700?text=No+Image';
   }
 
-  /** Delivery window: today + 3 days → today + 8 days (e.g. Aug 12th – Aug 17th). */
-  get deliveryFromLabel(): string {
+  /** Order date = today (T). */
+  get orderDateLabel(): string {
+    return this.formatDeliveryDate(0);
+  }
+
+  /** Shipment window: T+1 → T+3. */
+  get shipFromLabel(): string {
+    return this.formatDeliveryDate(1);
+  }
+
+  get shipToLabel(): string {
     return this.formatDeliveryDate(3);
+  }
+
+  /** Delivery window: T+4 → T+8. */
+  get deliveryFromLabel(): string {
+    return this.formatDeliveryDate(4);
   }
 
   get deliveryToLabel(): string {

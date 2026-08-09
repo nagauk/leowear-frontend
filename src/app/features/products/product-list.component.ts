@@ -101,11 +101,13 @@ import { environment } from '../../../environments/environment';
                         <div class="product-img-wrap position-relative">
                           <img [src]="p.imageUrl || 'https://via.placeholder.com/400x500?text=Leo+Wear'" [alt]="p.name" loading="lazy">
                           @if (isLeo(p.brand)) {
-                            <span class="badge bg-danger position-absolute top-0 start-0 m-2" style="font-size:0.65rem;">Our Choice</span>
+                            <span class="badge bg-dark position-absolute top-0 start-0 m-2" style="font-size:0.65rem;">Our Choice</span>
                           }
-
+                          @if (p.originalPrice && p.originalPrice > p.price) {
+                            <span class="text-right badge-sale">SALE</span>
+                          }
                           @if (p.stock === 0) {
-                            <span class="text-danger badge-stock"><b>Sold Out</b></span>
+                            <span class="badge-stock">Sold Out</span>
                           }
                         </div>
                       </a>

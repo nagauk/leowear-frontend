@@ -87,10 +87,20 @@ import { CartItem } from '../../core/models/models';
                   </div>
                 }
                 <hr>
-                <div class="d-flex justify-content-between mb-4">
-                  <strong>Total</strong>
+                <div class="d-flex justify-content-between mb-2">
+                  <strong>Order total</strong>
                   <strong class="fs-5">₹{{ grandTotal | number:'1.0-0' }}</strong>
                 </div>
+                @if (paymentMethod === 'COD') {
+                  <div class="small text-muted mb-1">
+                    Pay advance <strong>₹{{ codAdvance }}</strong> online now (deducted from total).
+                  </div>
+                  <div class="small text-muted mb-4">
+                    Remaining <strong>₹{{ codRemaining | number:'1.0-0' }}</strong> payable at delivery.
+                  </div>
+                } @else {
+                  <div class="mb-4"></div>
+                }
 
                 @if (auth.isLoggedIn()) {
                   <!-- Saved addresses -->
@@ -201,7 +211,10 @@ import { CartItem } from '../../core/models/models';
                         <input type="radio" name="pay" [(ngModel)]="paymentMethod" value="COD">
                         <div>
                           <div class="fw-semibold">Cash on Delivery</div>
-                          <div class="small text-muted">Pay when your order arrives</div>
+                          <div class="small text-muted">
+                            Pay advance ₹{{ codAdvance }}/- online now (deducted from order total);
+                            remaining amount when your order arrives.
+                          </div>
                         </div>
                       </label>
                     </div>
@@ -212,7 +225,7 @@ import { CartItem } from '../../core/models/models';
                     @if (placing) {
                       <span class="spinner-border spinner-border-sm me-2"></span>
                     }
-                    {{ paymentMethod === 'PREPAID' ? 'Continue to Payment' : 'Place Order (COD)' }}
+                    {{ paymentMethod === 'PREPAID' ? 'Continue to Payment' : ('Pay ₹' + codAdvance + ' advance & Place COD Order') }}
                   </button>
                   @if (error) {
                     <div class="alert alert-danger mt-3 mb-0 small">{{ error }}</div>
@@ -255,6 +268,8 @@ export class CartComponent implements OnInit {
   phone = '';
   placing = false;
   paymentMethod: 'COD' | 'PREPAID' = 'PREPAID';
+  /** COD advance paid online; deducted from order total (not an extra fee). */
+  readonly codAdvance = 99;
   error = '';
   success = false;
   validating = true;
@@ -277,8 +292,14 @@ export class CartComponent implements OnInit {
     return sub >= this.freeMin ? 0 : this.deliveryCharge;
   }
 
+  /** Order total = items + delivery (advance is part of this, not added on top). */
   get grandTotal(): number {
     return this.cart.total() + this.deliveryFee;
+  }
+
+  /** Amount still due after paying COD advance online. */
+  get codRemaining(): number {
+    return Math.max(0, this.grandTotal - this.codAdvance);
   }
 
   constructor(
@@ -489,8 +510,8 @@ export class CartComponent implements OnInit {
       next: (res) => {
         this.placing = false;
         const order = res.data;
-        if (this.paymentMethod === 'PREPAID' && order?.id) {
-          // Pay first — cart cleared after successful payment
+        if (order?.id) {
+          // PREPAID: full amount online. COD: platform fee ₹99 online, rest at delivery.
           this.router.navigate(['/pay', order.id], { queryParams: { clearCart: '1' } });
           return;
         }

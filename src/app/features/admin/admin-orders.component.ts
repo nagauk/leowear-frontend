@@ -59,6 +59,7 @@ import { SeoService } from '../../core/services/seo.service';
               <select class="form-select form-select-sm" [(ngModel)]="paymentFilter" (change)="applyPaymentFilter()">
                 <option value="">All payments</option>
                 <option value="PAID">Paid</option>
+                <option value="PARTIAL">Partial</option>
                 <option value="PENDING">Unpaid / Pending</option>
                 <option value="COD">COD</option>
                 <option value="PREPAID">Prepaid</option>
@@ -196,10 +197,22 @@ import { SeoService } from '../../core/services/seo.service';
                           </div>
                         }
                       </td>
-                      <td class="fw-semibold">₹{{ o.totalAmount | number:'1.0-0' }}</td>
+                      <td class="small">
+                        <div class="fw-semibold">₹{{ o.totalAmount | number:'1.0-0' }}</div>
+                        @if ((o.paymentStatus || '').toUpperCase() === 'PARTIAL' || paidOf(o) > 0) {
+                          <div class="text-muted" style="font-size:0.75rem">
+                            Paid ₹{{ paidOf(o) | number:'1.0-0' }}
+                            @if (remainingOf(o) > 0) {
+                              · Due ₹{{ remainingOf(o) | number:'1.0-0' }}
+                            }
+                          </div>
+                        }
+                      </td>
                       <td class="small">
                         @if ((o.paymentStatus || '').toUpperCase() === 'PAID') {
                           <span class="badge bg-success">Paid</span>
+                        } @else if ((o.paymentStatus || '').toUpperCase() === 'PARTIAL') {
+                          <span class="badge bg-info text-dark">Partial</span>
                         } @else {
                           <span class="badge bg-warning text-dark">{{ o.paymentStatus || 'PENDING' }}</span>
                         }
@@ -226,6 +239,20 @@ import { SeoService } from '../../core/services/seo.service';
                             }
                             Invoice
                           </button>
+                          @if (canMarkFullyPaid(o)) {
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-success"
+                                    [disabled]="markingPaidId === o.id"
+                                    (click)="markFullyPaid(o)"
+                                    title="Mark remaining COD amount as collected">
+                              @if (markingPaidId === o.id) {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                              } @else {
+                                <i class="bi bi-cash-coin me-1"></i>
+                              }
+                              Mark fully paid
+                            </button>
+                          }
                           <div class="status-cell">
                             <select class="form-select form-select-sm status-select"
                                     [ngModel]="statusValue(o)"
@@ -291,6 +318,7 @@ export class AdminOrdersComponent implements OnInit {
   flashId: number | null = null;
   downloadingPdf = false;
   downloadingInvoiceId: number | null = null;
+  markingPaidId: number | null = null;
   toast: { type: 'ok' | 'err'; text: string } | null = null;
 
   page = 0;
@@ -416,12 +444,59 @@ export class AdminOrdersComponent implements OnInit {
   applyPaymentFilter() {
     const f = (this.paymentFilter || '').toUpperCase();
     let list = [...(this.allOrdersCache || [])];
-    if (f === 'PAID' || f === 'PENDING') {
+    if (f === 'PAID' || f === 'PENDING' || f === 'PARTIAL') {
       list = list.filter(o => (o.paymentStatus || 'PENDING').toUpperCase() === f);
     } else if (f === 'COD' || f === 'PREPAID') {
       list = list.filter(o => (o.paymentMethod || '').toUpperCase() === f);
     }
     this.orders = list;
+  }
+
+  paidOf(o: Order): number {
+    const p = Number((o as any).paidAmount);
+    if (!isNaN(p) && p >= 0) return p;
+    if ((o.paymentStatus || '').toUpperCase() === 'PARTIAL') return Number((o as any).platformCharge) || 99;
+    if ((o.paymentStatus || '').toUpperCase() === 'PAID') return Number(o.totalAmount) || 0;
+    return 0;
+  }
+
+  remainingOf(o: Order): number {
+    const r = Number((o as any).remainingAmount);
+    if (!isNaN(r) && r >= 0) return r;
+    return Math.max(0, (Number(o.totalAmount) || 0) - this.paidOf(o));
+  }
+
+  canMarkFullyPaid(o: Order): boolean {
+    const ps = (o.paymentStatus || '').toUpperCase();
+    return ps === 'PARTIAL' || (ps === 'PENDING' && (o.paymentMethod || '').toUpperCase() === 'COD');
+  }
+
+  markFullyPaid(o: Order) {
+    if (!o.id || this.markingPaidId === o.id) return;
+    this.markingPaidId = o.id;
+    this.orderService.markFullyPaid(o.id).subscribe({
+      next: res => {
+        this.markingPaidId = null;
+        const updated = res?.data;
+        if (updated) {
+          const merge = (list: Order[]) => list.map(x => x.id === o.id ? {
+            ...x,
+            ...updated,
+            items: Array.isArray(updated.items) ? updated.items : x.items,
+            status: this.normalizeStatus(updated.status)
+          } : x);
+          this.allOrdersCache = merge(this.allOrdersCache);
+          this.applyPaymentFilter();
+        }
+        this.toast = { type: 'ok', text: `Order ${o.orderNumber} marked fully paid` };
+        this.flashId = o.id;
+        setTimeout(() => { if (this.flashId === o.id) this.flashId = null; }, 800);
+      },
+      error: err => {
+        this.markingPaidId = null;
+        this.toast = { type: 'err', text: err.error?.message || 'Failed to mark paid' };
+      }
+    });
   }
 
   goPage(p: number) { this.page = p; this.load(); }
