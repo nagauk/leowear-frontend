@@ -193,6 +193,14 @@ import { environment } from '../../../environments/environment';
                 }
               </div>
 
+              <div class="mb-3 delivery-estimate">
+                <i class="bi bi-truck me-2 text-success"></i>
+                <span class="text-muted">Delivery by</span>
+                <strong class="ms-1">{{ deliveryFromLabel }}</strong>
+                <span class="text-muted mx-1">–</span>
+                <strong>{{ deliveryToLabel }}</strong>
+              </div>
+
               @if (variantError) {
                 <div class="alert alert-warning py-2 small">{{ variantError }}</div>
               }
@@ -313,6 +321,20 @@ import { environment } from '../../../environments/environment';
       border: 1px solid #e94560; border-radius: 4px; padding: 1px 6px;
       letter-spacing: 0.03em;
     }
+    .delivery-estimate {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 0.95rem;
+      padding: 0.6rem 0.85rem;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      color: #166534;
+    }
+    .delivery-estimate strong {
+      color: #14532d;
+    }
   `]
 })
 export class ProductDetailComponent implements OnInit, OnDestroy {
@@ -371,6 +393,34 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         || 'https://via.placeholder.com/600x700?text=No+Image';
     }
     return this.product?.imageUrl || 'https://via.placeholder.com/600x700?text=No+Image';
+  }
+
+  /** Delivery window: today + 3 days → today + 8 days (e.g. Aug 12th – Aug 17th). */
+  get deliveryFromLabel(): string {
+    return this.formatDeliveryDate(3);
+  }
+
+  get deliveryToLabel(): string {
+    return this.formatDeliveryDate(8);
+  }
+
+  private formatDeliveryDate(daysFromToday: number): string {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + daysFromToday);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = d.getDate();
+    const suffix = this.ordinalSuffix(day);
+    return `${months[d.getMonth()]} ${day}${suffix}`;
+  }
+
+  private ordinalSuffix(n: number): string {
+    const j = n % 10;
+    const k = n % 100;
+    if (j === 1 && k !== 11) return 'st';
+    if (j === 2 && k !== 12) return 'nd';
+    if (j === 3 && k !== 13) return 'rd';
+    return 'th';
   }
 
   constructor(

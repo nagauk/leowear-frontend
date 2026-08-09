@@ -18,9 +18,9 @@ import { SeoService } from '../../core/services/seo.service';
 
           @if (step === 1) {
             <div class="mb-3">
-              <label class="form-label">Email or mobile *</label>
+              <label class="form-label">Email *</label>
               <input class="form-control cs-form-control" [(ngModel)]="identifier" name="identifier"
-                     placeholder="you@example.com or 9876543210">
+                     placeholder="you@example.com">
             </div>
             @if (error) { <div class="alert alert-danger small">{{ error }}</div> }
             @if (info) { <div class="alert alert-info small">{{ info }}</div> }

@@ -34,7 +34,7 @@ import { WishlistService } from './core/services/wishlist.service';
               <li class="nav-item"><a class="nav-link" routerLink="/products" routerLinkActive="active">Shop</a></li>
               @if (auth.isLoggedIn()) {
                 <li class="nav-item"><a class="nav-link" routerLink="/orders" routerLinkActive="active">My Orders</a></li>
-                <li class="nav-item"><a class="nav-link" routerLink="/returns" routerLinkActive="active">Returns</a></li>
+                <!--li class="nav-item"><a class="nav-link" routerLink="/returns" routerLinkActive="active">Returns</a></li-->
               }
               <li class="nav-item"><a class="nav-link" routerLink="/feedback" routerLinkActive="active">Feedback</a></li>
             }

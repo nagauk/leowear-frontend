@@ -81,10 +81,11 @@ import { Order } from '../../core/models/models';
                     <i class="bi bi-credit-card me-1"></i> Pay Now
                   </a>
                 }
-                @if (order.status === 'DELIVERED') {
-                  <a routerLink="/returns" [queryParams]="{orderId: order.id}" class="btn btn-sm btn-outline-danger">
-                    Request Return
-                  </a>
+                @if (order.shippingDetails && (order.status === 'SHIPPED' || order.status === 'DELIVERED')) {
+                  <div class="mt-1">
+                    <i class="bi bi-truck me-1"></i>
+                    <span class="text-dark">{{ order.shippingDetails }}</span>
+                  </div>
                 }
               </div>
             </div>
