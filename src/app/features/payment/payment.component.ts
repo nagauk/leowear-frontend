@@ -17,7 +17,10 @@ import { SeoService } from '../../core/services/seo.service';
           <p class="text-muted small mb-4">Secure checkout — UPI QR · PhonePe · GPay · BHIM · Cards (Razorpay)</p>
 
           @if (loading) {
-            <div class="text-center py-5"><div class="spinner-border text-danger"></div></div>
+            <div class="text-center py-5">
+              <div class="spinner-border text-danger"></div>
+              <p class="text-muted small mt-3 mb-0">Preparing secure payment…</p>
+            </div>
           } @else if (session) {
             <div class="mb-3">
               <div class="d-flex justify-content-between"><span class="text-muted">Order</span><strong>{{ session.orderNumber }}</strong></div>
@@ -46,12 +49,13 @@ import { SeoService } from '../../core/services/seo.service';
                 Pay ₹{{ session.amount | number:'1.0-0' }} (Mock success)
               </button>
             } @else {
-              <button class="btn btn-cs-primary w-100 btn-lg" [disabled]="paying" (click)="payRazorpay()">
+              <button class="btn btn-cs-primary w-100 btn-lg" [disabled]="paying || !scriptReady" (click)="payRazorpay()">
                 @if (paying) { <span class="spinner-border spinner-border-sm me-2"></span> }
-                Pay with UPI / Card / NetBanking
+                @else if (!scriptReady) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                {{ paying ? 'Opening Razorpay…' : (!scriptReady ? 'Loading payment…' : 'Pay with UPI / Card / NetBanking') }}
               </button>
               <p class="text-muted small mt-2 mb-0 text-center">
-                Supports BHIM UPI QR, PhonePe, Google Pay, Paytm &amp; more (enable methods in Razorpay Dashboard).
+                Supports BHIM UPI QR, PhonePe, Google Pay, Paytm &amp; more.
               </p>
             }
 
@@ -76,6 +80,8 @@ export class PaymentComponent implements OnInit {
   error = '';
   success = false;
   clearCart = false;
+  scriptReady = false;
+  private autoOpened = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -86,8 +92,6 @@ export class PaymentComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Canonical stays /pay — orderId is opaque, so different /pay/{id}
-    // shouldn't appear as separate URLs in search engines.
     this.seo.setPage({
       title: 'Secure Checkout',
       description: 'Complete your Leo Wear order with our secure checkout.',
@@ -100,13 +104,37 @@ export class PaymentComponent implements OnInit {
       this.error = 'Invalid order';
       return;
     }
+
+    // Parallel: load Razorpay SDK while backend creates order session
+    this.payments.loadRazorpayScript()
+      .then(() => {
+        this.scriptReady = true;
+        this.tryAutoOpen();
+      })
+      .catch(() => {
+        this.scriptReady = false;
+      });
+
     this.payments.createSession(this.orderId).subscribe({
-      next: res => { this.session = res.data; this.loading = false; },
+      next: res => {
+        this.session = res.data;
+        this.loading = false;
+        this.tryAutoOpen();
+      },
       error: err => {
         this.loading = false;
         this.error = err.error?.message || 'Could not create payment session';
       }
     });
+  }
+
+  /** Open Razorpay as soon as both session + script are ready (skips extra click delay). */
+  private tryAutoOpen() {
+    if (this.autoOpened || this.loading || !this.session || this.session.mock) return;
+    if (!this.scriptReady || !this.session.razorpayOrderId || !this.session.keyId) return;
+    this.autoOpened = true;
+    // Slight delay so the amount UI paints first
+    setTimeout(() => this.payRazorpay(), 80);
   }
 
   payMock() {
@@ -121,13 +149,15 @@ export class PaymentComponent implements OnInit {
 
   async payRazorpay() {
     if (!this.session?.keyId || !this.session.razorpayOrderId) return;
+    if (this.paying) return;
     this.paying = true;
     this.error = '';
     try {
       await this.payments.loadRazorpayScript();
+      this.scriptReady = true;
     } catch {
       this.paying = false;
-      this.error = 'Could not load Razorpay. Check your network.';
+      this.error = 'Could not load Razorpay. Check your network and try again.';
       return;
     }
 
@@ -138,7 +168,6 @@ export class PaymentComponent implements OnInit {
       name: this.session.companyName || 'Leo Wear',
       description: `Order ${this.session.orderNumber}`,
       order_id: this.session.razorpayOrderId,
-      // Enable UPI (QR + apps: PhonePe, BHIM, GPay), cards, netbanking, wallets
       method: {
         upi: true,
         card: true,
@@ -150,9 +179,7 @@ export class PaymentComponent implements OnInit {
           blocks: {
             utib: {
               name: 'Pay using UPI',
-              instruments: [
-                { method: 'upi' }
-              ]
+              instruments: [{ method: 'upi' }]
             },
             other: {
               name: 'Other payment methods',
@@ -164,9 +191,7 @@ export class PaymentComponent implements OnInit {
             }
           },
           sequence: ['block.utib', 'block.other'],
-          preferences: {
-            show_default_blocks: true
-          }
+          preferences: { show_default_blocks: true }
         }
       },
       prefill: {
@@ -203,6 +228,6 @@ export class PaymentComponent implements OnInit {
     this.paying = false;
     this.success = true;
     if (this.clearCart) this.cart.clear();
-    setTimeout(() => this.router.navigate(['/orders']), 1200);
+    setTimeout(() => this.router.navigate(['/orders']), 800);
   }
 }

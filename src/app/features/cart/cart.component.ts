@@ -8,6 +8,7 @@ import { OrderService } from '../../core/services/order.service';
 import { AddressService, Address } from '../../core/services/address.service';
 import { SettingsService, DeliverySettings } from '../../core/services/settings.service';
 import { SeoService } from '../../core/services/seo.service';
+import { PaymentService } from '../../core/services/payment.service';
 import { CartItem } from '../../core/models/models';
 
 @Component({
@@ -83,7 +84,7 @@ import { CartItem } from '../../core/models/models';
                 @if (deliveryFee > 0 && freeMin > 0) {
                   <div class="small text-muted mb-2">
                     Free delivery on orders ₹{{ freeMin | number:'1.0-0' }}+
-                    (add ₹{{ (freeMin - cart.total()) | number:'1.0-0' }} more)
+                    (<b class="text-success">add ₹{{ (freeMin - cart.total()) | number:'1.0-0' }} more</b>)
                   </div>
                 }
                 <hr>
@@ -309,7 +310,8 @@ export class CartComponent implements OnInit {
     private addressService: AddressService,
     private settings: SettingsService,
     private router: Router,
-    private seo: SeoService
+    private seo: SeoService,
+    private payments: PaymentService
   ) {}
 
   async ngOnInit() {
@@ -318,6 +320,8 @@ export class CartComponent implements OnInit {
       description: 'Review the items in your Leo Wear cart and proceed to secure checkout.',
       canonicalPath: '/cart'
     });
+    // Warm Razorpay checkout.js while user fills address (saves time on /pay)
+    this.payments.preloadRazorpayScript();
     this.validating = true;
     const removed = await this.cart.validateAgainstServer();
     if (removed.length) {

@@ -29,6 +29,9 @@ declare global {
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
+  /** Single in-flight script load so parallel callers share one network request. */
+  private scriptPromise: Promise<void> | null = null;
+
   constructor(private http: HttpClient) {}
 
   createSession(orderId: number): Observable<ApiResponse<PaymentSession>> {
@@ -47,17 +50,51 @@ export class PaymentService {
     return this.http.post<ApiResponse<Order>>(`${environment.apiUrl}/payments/verify`, body);
   }
 
+  /** Start loading checkout.js early (cart / payment page). Safe to call many times. */
+  preloadRazorpayScript(): void {
+    void this.loadRazorpayScript();
+  }
+
   loadRazorpayScript(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (window.Razorpay) {
-        resolve();
+    if (typeof window === 'undefined') {
+      return Promise.reject(new Error('No window'));
+    }
+    if (window.Razorpay) {
+      return Promise.resolve();
+    }
+    if (this.scriptPromise) {
+      return this.scriptPromise;
+    }
+
+    this.scriptPromise = new Promise<void>((resolve, reject) => {
+      // Already injected by a previous attempt
+      const existing = document.querySelector('script[data-razorpay-checkout]') as HTMLScriptElement | null;
+      if (existing) {
+        if (window.Razorpay) {
+          resolve();
+          return;
+        }
+        existing.addEventListener('load', () => resolve());
+        existing.addEventListener('error', () => {
+          this.scriptPromise = null;
+          reject(new Error('Failed to load Razorpay SDK'));
+        });
         return;
       }
+
       const s = document.createElement('script');
       s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      s.async = true;
+      s.dataset['razorpayCheckout'] = '1';
       s.onload = () => resolve();
-      s.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
-      document.body.appendChild(s);
+      s.onerror = () => {
+        this.scriptPromise = null;
+        s.remove();
+        reject(new Error('Failed to load Razorpay SDK'));
+      };
+      document.head.appendChild(s);
     });
+
+    return this.scriptPromise;
   }
 }
