@@ -38,20 +38,31 @@ import { environment } from '../../../environments/environment';
           <div class="row g-5">
             <!-- Gallery -->
             <div class="col-md-6">
-              <div class="product-carousel cs-card">
+              <div class="product-carousel cs-card" [class.zooming]="zoomActive">
                 <div class="carousel-main"
+                     (mousemove)="onZoomMove($event)"
+                     (mouseenter)="onZoomEnter($event)"
+                     (mouseleave)="onZoomLeave()"
                      (touchstart)="onTouchStart($event)"
                      (touchend)="onTouchEnd($event)">
-                  <img [src]="currentImageUrl" [alt]="product.name" class="carousel-img">
+                  <img [src]="currentImageUrl" [alt]="product.name" class="carousel-img"
+                       draggable="false">
+                  @if (zoomActive) {
+                    <div class="zoom-lens"
+                         [style.left.px]="lensLeft"
+                         [style.top.px]="lensTop"
+                         [style.width.px]="lensSize"
+                         [style.height.px]="lensSize"></div>
+                  }
                   @if (isLeo(product.brand)) {
                     <div class="leo-choice-badge">Our Choice · Leo Wear</div>
                   }
 
                   @if (gallery.length > 1) {
-                    <button type="button" class="carousel-arrow carousel-prev" (click)="prev()" aria-label="Previous">
+                    <button type="button" class="carousel-arrow carousel-prev" (click)="prev(); $event.stopPropagation()" aria-label="Previous">
                       <i class="bi bi-chevron-left"></i>
                     </button>
-                    <button type="button" class="carousel-arrow carousel-next" (click)="next()" aria-label="Next">
+                    <button type="button" class="carousel-arrow carousel-next" (click)="next(); $event.stopPropagation()" aria-label="Next">
                       <i class="bi bi-chevron-right"></i>
                     </button>
                     <div class="carousel-counter">{{ activeIndex + 1 }} / {{ gallery.length }}</div>
@@ -69,6 +80,14 @@ import { environment } from '../../../environments/environment';
                     </div>
                   }
                 </div>
+
+                <!-- Amazon-style magnified preview (desktop) -->
+                @if (zoomActive) {
+                  <div class="zoom-result"
+                       [style.background-image]="'url(' + currentImageUrl + ')'"
+                       [style.background-size]="zoomBgSize"
+                       [style.background-position]="zoomBgPos"></div>
+                }
 
                 @if (gallery.length > 1) {
                   <div class="carousel-thumbs">
@@ -233,32 +252,67 @@ import { environment } from '../../../environments/environment';
                       <h5 class="mb-0">Size chart (India)</h5>
                       <button type="button" class="btn-close" aria-label="Close" (click)="showSizeChart = false"></button>
                     </div>
-                    <p class="small text-muted mb-3">Measurements in inches. Pick the size closest to your body measurements.</p>
-                    <div class="table-responsive">
-                      <table class="table table-sm table-bordered size-chart-table mb-0">
-                        <thead>
-                          <tr>
-                            <th>Size</th>
-                            <th>Chest</th>
-                            <th>Waist</th>
-                            <th>Hip</th>
-                            <th>Shoulder</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @for (row of sizeChartRows; track row.size) {
-                            <tr [class.table-active]="selectedSize === row.size">
-                              <td><strong>{{ row.size }}</strong></td>
-                              <td>{{ row.chest }}</td>
-                              <td>{{ row.waist }}</td>
-                              <td>{{ row.hip }}</td>
-                              <td>{{ row.shoulder }}</td>
-                            </tr>
-                          }
-                        </tbody>
-                      </table>
+                    <div class="size-chart-tabs mb-3">
+                      <button type="button" class="size-tab" [class.active]="sizeChartTab === 'adult'"
+                              (click)="sizeChartTab = 'adult'">Adult</button>
+                      <button type="button" class="size-tab" [class.active]="sizeChartTab === 'kids'"
+                              (click)="sizeChartTab = 'kids'">Kids</button>
                     </div>
-                    <p class="small text-muted mt-3 mb-0">Tip: If between sizes, size up for a relaxed fit.</p>
+                    @if (sizeChartTab === 'adult') {
+                      <p class="small text-muted mb-3">Adult apparel — measurements in inches.</p>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-bordered size-chart-table mb-0">
+                          <thead>
+                            <tr>
+                              <th>Size</th>
+                              <th>Chest</th>
+                              <th>Waist</th>
+                              <th>Hip</th>
+                              <th>Shoulder</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (row of sizeChartRows; track row.size) {
+                              <tr [class.table-active]="selectedSize === row.size">
+                                <td><strong>{{ row.size }}</strong></td>
+                                <td>{{ row.chest }}</td>
+                                <td>{{ row.waist }}</td>
+                                <td>{{ row.hip }}</td>
+                                <td>{{ row.shoulder }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                      <p class="small text-muted mt-3 mb-0">Tip: If between sizes, size up for a relaxed fit.</p>
+                    } @else {
+                      <p class="small text-muted mb-3">Kids wear — age, height &amp; chest (approx.).</p>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-bordered size-chart-table mb-0">
+                          <thead>
+                            <tr>
+                              <th>Size</th>
+                              <th>Age</th>
+                              <th>Height (cm)</th>
+                              <th>Chest (in)</th>
+                              <th>Waist (in)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (row of kidsSizeChartRows; track row.size) {
+                              <tr [class.table-active]="selectedSize === row.size">
+                                <td><strong>{{ row.size }}</strong></td>
+                                <td>{{ row.age }}</td>
+                                <td>{{ row.height }}</td>
+                                <td>{{ row.chest }}</td>
+                                <td>{{ row.waist }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                      <p class="small text-muted mt-3 mb-0">Tip: Prefer height over age when choosing kids size.</p>
+                    }
                   </div>
                 </div>
               }
@@ -309,11 +363,45 @@ import { environment } from '../../../environments/environment';
       display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
     }
     .btn-love.loved { color: #e94560; border-color: #fecdd3; background: #fff5f7; }
-    .product-carousel { overflow: hidden; }
+    .product-carousel {
+      position: relative;
+      overflow: visible;
+    }
     .carousel-main {
       position: relative; aspect-ratio: 3/4; background: #f3f4f6; user-select: none;
+      overflow: hidden; cursor: crosshair;
     }
-    .carousel-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .carousel-img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      pointer-events: none;
+    }
+    .zoom-lens {
+      position: absolute;
+      border: 1px solid rgba(233, 69, 96, 0.85);
+      background: rgba(233, 69, 96, 0.18);
+      pointer-events: none;
+      z-index: 5;
+      box-sizing: border-box;
+    }
+    .zoom-result {
+      position: absolute;
+      left: calc(100% + 12px);
+      top: 0;
+      width: 100%;
+      aspect-ratio: 3/4;
+      background-repeat: no-repeat;
+      background-color: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+      z-index: 30;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    @media (max-width: 991.98px) {
+      .zoom-lens, .zoom-result { display: none !important; }
+      .carousel-main { cursor: default; }
+    }
     .carousel-arrow {
       position: absolute; top: 50%; transform: translateY(-50%);
       width: 48px; height: 48px; border-radius: 50%; border: none;
@@ -421,9 +509,19 @@ import { environment } from '../../../environments/environment';
       padding: 16px;
     }
     .size-chart-modal {
-      background: #fff; border-radius: 12px; max-width: 520px; width: 100%;
+      background: #fff; border-radius: 12px; max-width: 560px; width: 100%;
       max-height: 90vh; overflow: auto; padding: 1.25rem 1.35rem;
       box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    }
+    .size-chart-tabs {
+      display: flex; gap: 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;
+    }
+    .size-tab {
+      border: 1px solid #e5e7eb; background: #fff; border-radius: 999px;
+      padding: 6px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: #4b5563;
+    }
+    .size-tab.active {
+      background: #1a1a2e; border-color: #1a1a2e; color: #fff;
     }
     .size-chart-table th, .size-chart-table td {
       text-align: center; vertical-align: middle; font-size: 0.85rem;
@@ -442,13 +540,24 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   loved = false;
   loveMsg = '';
   showSizeChart = false;
+  sizeChartTab: 'adult' | 'kids' = 'adult';
 
   selectedSize = '';
   selectedColor = '';
   sizes: string[] = [];
   colors: string[] = [];
 
-  /** Standard Indian apparel size chart (inches). */
+  /** Amazon-style image zoom state */
+  zoomActive = false;
+  lensLeft = 0;
+  lensTop = 0;
+  lensSize = 140;
+  zoomBgSize = '250% 250%';
+  zoomBgPos = '0% 0%';
+  private zoomBoxW = 0;
+  private zoomBoxH = 0;
+
+  /** Standard Indian adult apparel size chart (inches). */
   readonly sizeChartRows = [
     { size: 'XS',  chest: '34–35', waist: '28–29', hip: '35–36', shoulder: '15.5' },
     { size: 'S',   chest: '36–37', waist: '30–31', hip: '37–38', shoulder: '16' },
@@ -459,6 +568,27 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     { size: '3XL', chest: '46–48', waist: '40–42', hip: '47–49', shoulder: '18.5' },
     { size: '4XL', chest: '49–51', waist: '43–45', hip: '50–52', shoulder: '19' },
     { size: '5XL', chest: '52–54', waist: '46–48', hip: '53–55', shoulder: '19.5' },
+  ];
+
+  /** Indian kids size chart (approx.). */
+  readonly kidsSizeChartRows = [
+    { size: '0-3M',  age: '0–3 months',  height: '50–60',  chest: '16–17', waist: '16–17' },
+    { size: '3-6M',  age: '3–6 months',  height: '60–68',  chest: '17–18', waist: '17–18' },
+    { size: '6-12M', age: '6–12 months', height: '68–76',  chest: '18–19', waist: '18–19' },
+    { size: '12-18M',age: '12–18 months',height: '76–82',  chest: '19–20', waist: '19–20' },
+    { size: '18-24M',age: '18–24 months',height: '82–88',  chest: '20–21', waist: '19–20' },
+    { size: '2-3Y',  age: '2–3 years',   height: '88–98',  chest: '21–22', waist: '20–21' },
+    { size: '3-4Y',  age: '3–4 years',   height: '98–104', chest: '22–23', waist: '21–22' },
+    { size: '4-5Y',  age: '4–5 years',   height: '104–110',chest: '23–24', waist: '21–22' },
+    { size: '5-6Y',  age: '5–6 years',   height: '110–116',chest: '24–25', waist: '22–23' },
+    { size: '6-7Y',  age: '6–7 years',   height: '116–122',chest: '25–26', waist: '22–23' },
+    { size: '7-8Y',  age: '7–8 years',   height: '122–128',chest: '26–27', waist: '23–24' },
+    { size: '8-9Y',  age: '8–9 years',   height: '128–134',chest: '27–28', waist: '24–25' },
+    { size: '9-10Y', age: '9–10 years',  height: '134–140',chest: '28–29', waist: '24–25' },
+    { size: '10-11Y',age: '10–11 years', height: '140–146',chest: '29–30', waist: '25–26' },
+    { size: '11-12Y',age: '11–12 years', height: '146–152',chest: '30–31', waist: '26–27' },
+    { size: '12-13Y',age: '12–13 years', height: '152–158',chest: '31–32', waist: '27–28' },
+    { size: '13-14Y',age: '13–14 years', height: '158–164',chest: '32–34', waist: '28–29' },
   ];
 
   private touchStartX = 0;
@@ -880,6 +1010,55 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   onKey(e: KeyboardEvent) {
     if (e.key === 'ArrowLeft') this.prev();
     if (e.key === 'ArrowRight') this.next();
+  }
+
+  /** Amazon-style lens + side zoom panel (desktop only). */
+  onZoomEnter(e: MouseEvent) {
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 991.98px)').matches) {
+      return;
+    }
+    const el = e.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    this.zoomBoxW = rect.width;
+    this.zoomBoxH = rect.height;
+    // Lens ~35% of image so side panel shows ~2.8× magnification
+    this.lensSize = Math.max(80, Math.min(rect.width, rect.height) * 0.35);
+    this.zoomActive = true;
+    this.onZoomMove(e);
+  }
+
+  onZoomLeave() {
+    this.zoomActive = false;
+  }
+
+  onZoomMove(e: MouseEvent) {
+    if (!this.zoomActive) return;
+    const el = e.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    const w = rect.width || this.zoomBoxW;
+    const h = rect.height || this.zoomBoxH;
+    if (w <= 0 || h <= 0) return;
+
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const half = this.lensSize / 2;
+
+    let left = x - half;
+    let top = y - half;
+    left = Math.max(0, Math.min(left, w - this.lensSize));
+    top = Math.max(0, Math.min(top, h - this.lensSize));
+
+    this.lensLeft = left;
+    this.lensTop = top;
+
+    // Magnification = result size / lens size (result is same width as main image)
+    const scaleX = (w / this.lensSize) * 100;
+    const scaleY = (h / this.lensSize) * 100;
+    this.zoomBgSize = `${scaleX}% ${scaleY}%`;
+
+    const posX = w > this.lensSize ? (left / (w - this.lensSize)) * 100 : 0;
+    const posY = h > this.lensSize ? (top / (h - this.lensSize)) * 100 : 0;
+    this.zoomBgPos = `${posX}% ${posY}%`;
   }
 
   onTouchStart(e: TouchEvent) {
