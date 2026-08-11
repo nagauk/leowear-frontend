@@ -9,6 +9,7 @@ import { AddressService, Address } from '../../core/services/address.service';
 import { SettingsService, DeliverySettings } from '../../core/services/settings.service';
 import { SeoService } from '../../core/services/seo.service';
 import { PaymentService } from '../../core/services/payment.service';
+import { CouponService, CouponValidation } from '../../core/services/coupon.service';
 import { CartItem } from '../../core/models/models';
 
 @Component({
@@ -87,6 +88,12 @@ import { CartItem } from '../../core/models/models';
                     (<b class="text-success">add ₹{{ (freeMin - cart.total()) | number:'1.0-0' }} more</b>)
                   </div>
                 }
+                @if (appliedCoupon) {
+                  <div class="d-flex justify-content-between mb-2 text-success">
+                    <span>Coupon {{ appliedCoupon.code }} ({{ appliedCoupon.discountPercent }}% off)</span>
+                    <span>−₹{{ appliedCoupon.discountAmount | number:'1.0-0' }}</span>
+                  </div>
+                }
                 <hr>
                 <div class="d-flex justify-content-between mb-2">
                   <strong>Order total</strong>
@@ -102,6 +109,60 @@ import { CartItem } from '../../core/models/models';
                 } @else {
                   <div class="mb-4"></div>
                 }
+
+                <!-- Coupon -->
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Have a coupon code?</label>
+                  @if (!appliedCoupon) {
+                    <div class="input-group">
+                      <input type="text"
+                             class="form-control cs-form-control text-uppercase"
+                             [(ngModel)]="couponInput" name="couponCode"
+                             placeholder="Enter code (e.g. WELCOME10)"
+                             [disabled]="validatingCoupon"
+                             (keyup.enter)="applyCoupon()"
+                             maxlength="20"
+                             autocomplete="off">
+                      <button class="btn btn-outline-dark" type="button"
+                              (click)="applyCoupon()"
+                              [disabled]="!couponInput.trim() || validatingCoupon">
+                        @if (validatingCoupon) {
+                          <span class="spinner-border spinner-border-sm"></span>
+                        } @else {
+                          Apply
+                        }
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="border rounded p-2 d-flex align-items-start gap-2"
+                         style="background:#f0fdf4;border-color:#86efac;">
+                      <div class="flex-grow-1">
+                        <div class="fw-semibold text-success">
+                          <i class="bi bi-check-circle-fill me-1"></i>
+                          {{ appliedCoupon.code }} applied
+                          ({{ appliedCoupon.discountPercent }}% off)
+                        </div>
+                        @if (appliedCoupon.description) {
+                          <div class="small text-muted">{{ appliedCoupon.description }}</div>
+                        }
+                        <div class="small text-success">
+                          You save ₹{{ appliedCoupon.discountAmount | number:'1.0-0' }} on this order
+                        </div>
+                      </div>
+                      <button class="btn btn-link btn-sm text-danger p-0" type="button"
+                              (click)="removeCoupon()" title="Remove coupon">
+                        <i class="bi bi-x-circle"></i> Remove
+                      </button>
+                    </div>
+                  }
+                  @if (couponMsg) {
+                    <div class="small mt-1"
+                         [class.text-danger]="couponMsgType === 'err'"
+                         [class.text-success]="couponMsgType === 'ok'">
+                      {{ couponMsg }}
+                    </div>
+                  }
+                </div>
 
                 @if (auth.isLoggedIn()) {
                   <!-- Saved addresses -->
@@ -288,17 +349,30 @@ export class CartComponent implements OnInit {
   pinValid = false;
   pinMsg = '';
 
+  /** Coupon state */
+  couponInput = '';
+  appliedCoupon: CouponValidation | null = null;
+  validatingCoupon = false;
+  couponMsg = '';
+  couponMsgType: 'ok' | 'err' | '' = '';
+
   get deliveryFee(): number {
     const sub = this.cart.total();
     return sub >= this.freeMin ? 0 : this.deliveryCharge;
   }
 
-  /** Order total = items + delivery (advance is part of this, not added on top). */
+  /** Order total = items + delivery − coupon discount. Discount never applies to delivery. */
   get grandTotal(): number {
-    return this.cart.total() + this.deliveryFee;
+    const items = this.cart.total();
+    const discount = this.appliedCoupon ? Number(this.appliedCoupon.discountAmount || 0) : 0;
+    return Math.max(0, items - discount + this.deliveryFee);
   }
 
-  /** Amount still due after paying COD advance online. */
+  /**
+   * COD: customer pays ₹99 advance online now, rest on delivery. With a coupon
+   * applied, the online advance is still ₹99 — the discount applies to the
+   * delivery-side remaining, not to the platform advance.
+   */
   get codRemaining(): number {
     return Math.max(0, this.grandTotal - this.codAdvance);
   }
@@ -311,8 +385,44 @@ export class CartComponent implements OnInit {
     private settings: SettingsService,
     private router: Router,
     private seo: SeoService,
-    private payments: PaymentService
+    private payments: PaymentService,
+    private coupons: CouponService
   ) {}
+
+  applyCoupon() {
+    const code = (this.couponInput || '').trim();
+    if (!code) return;
+    this.validatingCoupon = true;
+    this.couponMsg = '';
+    this.couponMsgType = '';
+    this.coupons.validate(code, this.cart.total()).subscribe({
+      next: res => {
+        this.validatingCoupon = false;
+        if (res?.success && res.data) {
+          this.appliedCoupon = res.data;
+          this.couponMsg = `Coupon ${res.data.code} applied — you save ₹${Math.round(res.data.discountAmount)}.`;
+          this.couponMsgType = 'ok';
+          setTimeout(() => { if (this.couponMsgType === 'ok') this.couponMsg = ''; }, 3000);
+        } else {
+          this.couponMsg = res?.message || 'Could not apply coupon.';
+          this.couponMsgType = 'err';
+        }
+      },
+      error: err => {
+        this.validatingCoupon = false;
+        this.appliedCoupon = null;
+        this.couponMsg = err?.error?.message || 'Invalid coupon code.';
+        this.couponMsgType = 'err';
+      }
+    });
+  }
+
+  removeCoupon() {
+    this.appliedCoupon = null;
+    this.couponInput = '';
+    this.couponMsg = '';
+    this.couponMsgType = '';
+  }
 
   async ngOnInit() {
     this.seo.setPage({
@@ -509,7 +619,8 @@ export class CartComponent implements OnInit {
       shippingAddress: shipping,
       phone: this.phone || undefined,
       pincode: this.newAddr.pincode || this.addresses.find(a => a.id === this.selectedAddressId)?.pincode,
-      paymentMethod: this.paymentMethod
+      paymentMethod: this.paymentMethod,
+      couponCode: this.appliedCoupon?.code
     }).subscribe({
       next: (res) => {
         this.placing = false;

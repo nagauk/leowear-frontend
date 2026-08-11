@@ -18,6 +18,7 @@ import { SeoService } from '../../core/services/seo.service';
           <a routerLink="/admin/products" class="btn btn-outline-dark btn-sm">Products</a>
           <a routerLink="/admin/orders" class="btn btn-outline-dark btn-sm">Orders</a>
           <a routerLink="/admin/returns" class="btn btn-cs-dark btn-sm">Returns</a>
+          <a routerLink="/admin/coupons" class="btn btn-outline-dark btn-sm">Coupons</a>
         </div>
 
         <h2 class="section-title mb-4">Manage Returns</h2>

@@ -20,6 +20,7 @@ import { SeoService } from '../../core/services/seo.service';
           <a routerLink="/admin/products" class="btn btn-cs-dark btn-sm">Products</a>
           <a routerLink="/admin/orders" class="btn btn-outline-dark btn-sm">Orders</a>
           <a routerLink="/admin/returns" class="btn btn-outline-dark btn-sm">Returns</a>
+          <a routerLink="/admin/coupons" class="btn btn-outline-dark btn-sm">Coupons</a>
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-4">

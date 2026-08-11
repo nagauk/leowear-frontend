@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { OrderService } from '../../core/services/order.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Order } from '../../core/models/models';
+import { Subscription, interval } from 'rxjs';
 
 @Component({
   selector: 'app-orders',
@@ -13,6 +14,13 @@ import { Order } from '../../core/models/models';
     <div class="page-container">
       <div class="container">
         <h2 class="section-title mb-4">My Orders</h2>
+
+        @if (verifyingRecent) {
+          <div class="alert alert-info py-2 d-flex align-items-center gap-2">
+            <span class="spinner-border spinner-border-sm"></span>
+            <span>Finalising your recent payment — this page will refresh automatically.</span>
+          </div>
+        }
 
         @if (loading) {
           <div class="text-center py-5"><div class="spinner-border text-danger"></div></div>
@@ -35,7 +43,15 @@ import { Order } from '../../core/models/models';
                   <h6 class="mb-1">Order {{ order.orderNumber }}</h6>
                   <span class="text-muted small">{{ order.createdAt | date:'medium' }}</span>
                 </div>
-                <span class="badge-status" [class]="(order.status || '').toLowerCase()">{{ order.status }}</span>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                  @if (totalSavedOf(order) > 0) {
+                    <span class="badge-saved">
+                      <i class="bi bi-piggy-bank me-1"></i>
+                      You saved ₹{{ totalSavedOf(order) | number:'1.0-0' }} on this order
+                    </span>
+                  }
+                  <span class="badge-status" [class]="(order.status || '').toLowerCase()">{{ order.status }}</span>
+                </div>
               </div>
               <div class="row g-2 mb-3">
                 @for (item of (order.items || []); track item.id || $index) {
@@ -92,7 +108,25 @@ import { Order } from '../../core/models/models';
                   }
                 </div>
                 <div class="text-end">
-                  <div class="text-muted small">Order total</div>
+                  @if (productDiscountOf(order) > 0 || (order.discountAmount && order.discountAmount > 0)
+                       || (order.deliveryCharge && order.deliveryCharge > 0)
+                       || (order.subtotal && order.subtotal > 0)) {
+                    <div class="text-muted small lh-sm mb-1">
+                      @if (order.subtotal && order.subtotal > 0) {
+                        <div>Subtotal: <span class="text-dark">₹{{ order.subtotal | number:'1.0-0' }}</span></div>
+                      }
+                      @if (productDiscountOf(order) > 0) {
+                        <div class="text-success">
+                          Product discount: <span class="fw-medium">−₹{{ productDiscountOf(order) | number:'1.0-0' }}</span>
+                        </div>
+                      }
+
+                      @if (order.deliveryCharge && order.deliveryCharge > 0) {
+                        <div>Delivery: <span class="text-dark">₹{{ order.deliveryCharge | number:'1.0-0' }}</span></div>
+                      }
+                    </div>
+                  }
+                  <div class="text-muted small">Paid Amount</div>
                   <div class="fw-bold fs-5">₹{{ order.totalAmount | number:'1.0-0' }}</div>
                 </div>
               </div>
@@ -117,12 +151,21 @@ import { Order } from '../../core/models/models';
     </div>
   `
 })
-export class OrdersComponent implements OnInit {
+export class OrdersComponent implements OnInit, OnDestroy {
   orders: Order[] = [];
   loading = true;
   error = '';
+  /** Poll watcher: tracks the `?paid=<orderId>` flow. */
+  private paidPollingSub: Subscription | null = null;
+  /** Watches for the ?paid=<id> query so we only show the "verifying" banner while polling. */
+  verifyingRecent: number | null = null;
 
-  constructor(private orderService: OrderService, private seo: SeoService) {}
+  constructor(
+    private orderService: OrderService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private seo: SeoService
+  ) {}
 
   ngOnInit() {
     this.seo.setPage({
@@ -131,6 +174,52 @@ export class OrdersComponent implements OnInit {
       canonicalPath: '/orders'
     });
     this.load();
+
+    // If we landed here via the payment-success redirect, poll /recent-paid
+    // until the order flips to PAID (the async verify worker races the
+    // redirect). 30-second cap so a permanently-stuck verify doesn't pin the page.
+    const paidId = Number(this.route.snapshot.queryParamMap.get('paid'));
+    if (paidId) {
+      this.verifyingRecent = paidId;
+      this.startPollingRecentPaid(paidId);
+    }
+  }
+
+  ngOnDestroy() {
+    this.paidPollingSub?.unsubscribe();
+  }
+
+  private startPollingRecentPaid(orderId: number) {
+    let attempts = 0;
+    const maxAttempts = 30;
+    this.paidPollingSub?.unsubscribe();
+    this.paidPollingSub = interval(1000).subscribe(() => {
+      attempts++;
+      if (attempts > maxAttempts) {
+        this.paidPollingSub?.unsubscribe();
+        this.paidPollingSub = null;
+        this.verifyingRecent = null;
+        return;
+      }
+      this.orderService.getRecentPaid(orderId).subscribe({
+        next: res => {
+          if (res?.success && res.data) {
+            // Order is PAID. Refresh the list once with the server's snapshot
+            // and clear the ?paid= query so a browser refresh doesn't restart polling.
+            this.paidPollingSub?.unsubscribe();
+            this.paidPollingSub = null;
+            this.verifyingRecent = null;
+            this.load();
+            this.router.navigate([], { queryParams: { paid: null }, queryParamsHandling: 'merge' });
+          }
+          // else 404 → still pending, keep polling
+        },
+        error: () => {
+          // 404 = still processing. Non-404 (5xx) — give up to avoid hammering.
+          // Distinguish by status — easiest path: continue on any error up to the cap.
+        }
+      });
+    });
   }
 
   load() {
@@ -186,5 +275,18 @@ export class OrdersComponent implements OnInit {
     if (cancelled || this.isFullyPaid(order)) return false;
     if (order.needsPayment === false) return false;
     return this.isPartial(order) || (order.paymentStatus || '').toUpperCase() === 'PENDING' || order.needsPayment === true;
+  }
+
+  /** Product-level discount across the order (line-MRP − paid-unit × qty). */
+  productDiscountOf(order: Order): number {
+    return Number((order as any).productDiscountTotal) || 0;
+  }
+
+  /** Total saved on the order = product discount + coupon discount. */
+  totalSavedOf(order: Order): number {
+    if (typeof (order as any).totalSaved === 'number') {
+      return (order as any).totalSaved;
+    }
+    return this.productDiscountOf(order) + (Number((order as any).discountAmount) || 0);
   }
 }

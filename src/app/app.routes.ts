@@ -26,6 +26,7 @@ export const routes: Routes = [
       { path: 'orders', loadComponent: () => import('./features/admin/admin-orders.component').then(m => m.AdminOrdersComponent) },
       { path: 'returns', loadComponent: () => import('./features/admin/admin-returns.component').then(m => m.AdminReturnsComponent), canActivate: [adminGuard] },
       { path: 'settings', loadComponent: () => import('./features/admin/admin-settings.component').then(m => m.AdminSettingsComponent) },
+      { path: 'coupons', loadComponent: () => import('./features/admin/admin-coupons.component').then(m => m.AdminCouponsComponent), canActivate: [adminGuard] },
       { path: 'employees', loadComponent: () => import('./features/admin/admin-employees.component').then(m => m.AdminEmployeesComponent), canActivate: [adminGuard] }
     ]
   },

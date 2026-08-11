@@ -506,6 +506,20 @@ h1, h2, h3, .display-font {
   &.completed { background: #dbeafe; color: #1e40af; }
 }
 
+/* Green pill for "You saved ₹X on this order" in the customer order history. */
+.badge-saved {
+  font-weight: 600;
+  font-size: 0.72rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 20px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
 /* ========== Footer ========== */
 .cs-footer {
   background: var(--cs-primary);

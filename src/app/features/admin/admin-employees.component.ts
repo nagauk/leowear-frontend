@@ -16,6 +16,7 @@ import { SeoService } from '../../core/services/seo.service';
         <div class="d-flex flex-wrap gap-2 mb-4">
           <a routerLink="/admin" class="btn btn-outline-dark btn-sm">Dashboard</a>
           <a routerLink="/admin/products" class="btn btn-outline-dark btn-sm">Products</a>
+          <a routerLink="/admin/coupons" class="btn btn-outline-dark btn-sm">Coupons</a>
           <a routerLink="/admin/employees" class="btn btn-cs-dark btn-sm">Employees</a>
         </div>
         <div class="cs-card p-4">

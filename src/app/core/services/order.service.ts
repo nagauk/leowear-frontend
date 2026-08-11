@@ -31,6 +31,16 @@ export class OrderService {
     return this.http.get<ApiResponse<Order>>(`${environment.apiUrl}/orders/${id}`);
   }
 
+  /**
+   * Polled by OrdersComponent after a payment redirect. Returns 200 only
+   * when the order is both owned by the caller and fully PAID — used to
+   * avoid the "blank orders page" race when async payment verification
+   * completes after the user lands on the page.
+   */
+  getRecentPaid(id: number): Observable<ApiResponse<Order>> {
+    return this.http.get<ApiResponse<Order>>(`${environment.apiUrl}/orders/recent-paid/${id}`);
+  }
+
   getAllOrders(page = 0, size = 20, filter?: Partial<OrderFilter>): Observable<ApiResponse<Page<Order>>> {
     let params = new HttpParams()
       .set('page', String(page))

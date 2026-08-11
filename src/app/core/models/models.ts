@@ -86,6 +86,8 @@ export interface OrderItem {
   color?: string;
   quantity: number;
   unitPrice: number;
+  /** Pre-discount MRP (optional). Used for product-discount lines on the invoice / history. */
+  originalUnitPrice?: number;
   subtotal: number;
 }
 
@@ -95,7 +97,17 @@ export interface Order {
   userId: number;
   username: string;
   items: OrderItem[];
+  subtotal?: number;
+  deliveryCharge?: number;
   totalAmount: number;
+  /** Coupon discount captured at order-placement time. */
+  discountAmount?: number;
+  /** Coupon code snapshotted on the order row (preserved across edits/deletes). */
+  couponCode?: string;
+  /** Sum of (originalUnitPrice − unitPrice) × quantity across items. */
+  productDiscountTotal?: number;
+  /** Headline "saved" figure = productDiscountTotal + discountAmount. */
+  totalSaved?: number;
   status: string;
   paymentMethod?: string;
   paymentStatus?: string;

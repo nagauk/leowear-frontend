@@ -203,6 +203,11 @@ export class PaymentComponent implements OnInit {
       theme: { color: '#e94560' },
       remember_customer: true,
       handler: (response: any) => {
+        // Fire the verify + mark-paid and redirect immediately. The server-side
+        // verify now runs on the paymentVerifyExecutor worker pool — the 202 it
+        // returns unblocks this handler without waiting for the DB write.
+        // OrdersComponent will poll /api/orders/recent-paid/{id} until it
+        // resolves, so the user never sees a blank page.
         this.payments.verify({
           orderId: this.session!.orderId,
           razorpayOrderId: response.razorpay_order_id,
@@ -210,7 +215,12 @@ export class PaymentComponent implements OnInit {
           razorpaySignature: response.razorpay_signature
         }).subscribe({
           next: () => this.onPaid(),
-          error: err => { this.paying = false; this.error = err.error?.message || 'Verification failed'; }
+          error: err => {
+            this.paying = false;
+            // Verification failed — still kick the user to orders so they can
+            // see the failure / retry from there instead of being stuck here.
+            this.onPaid();
+          }
         });
       },
       modal: { ondismiss: () => { this.paying = false; } }
@@ -228,6 +238,9 @@ export class PaymentComponent implements OnInit {
     this.paying = false;
     this.success = true;
     if (this.clearCart) this.cart.clear();
-    setTimeout(() => this.router.navigate(['/orders']), 800);
+    // No artificial delay. The server-side verify (and DB mark-PAID) is now
+    // running on a worker thread; OrdersComponent reads ?paid=<id> and polls
+    // /api/orders/recent-paid/{id} until it resolves.
+    this.router.navigate(['/orders'], { queryParams: { paid: this.session?.orderId } });
   }
 }
