@@ -148,7 +148,7 @@ import { SeoService } from '../../core/services/seo.service';
                             [(ngModel)]="img.color" [name]="'imgColor'+i">
                       <option value="">Any color</option>
                       @for (c of colorOptions; track c) {
-                        <option [ngValue]="c">{{ c }}</option>
+                        <option [style.background]="colorHex(c)" [ngValue]="c">  {{ c }}</option>
                       }
                     </select>
                     <select class="form-select cs-form-control" style="width:110px"
@@ -196,7 +196,7 @@ import { SeoService } from '../../core/services/seo.service';
                       <label class="form-label small mb-1">Colors</label>
                       <select multiple class="form-select form-select-sm" [(ngModel)]="bulkColors" name="bulkColors" size="6">
                         @for (c of colorOptions; track c) {
-                          <option [ngValue]="c">{{ c }}</option>
+                          <option [style.background]="colorHex(c)" [ngValue]="c">{{ c }}</option>
                         }
                       </select>
                     </div>
@@ -373,6 +373,28 @@ export class AdminProductsComponent implements OnInit {
     if (this.statusFilter === 'active') return this.products.filter(p => p.active);
     if (this.statusFilter === 'inactive') return this.products.filter(p => !p.active);
     return this.products;
+  }
+    private norm(v?: string | null): string {
+      return (v || '').trim().toLowerCase();
+    }
+colorHex(name: string): string {
+    const key = this.norm(name);
+    const map: Record<string, string> = {
+      black: '#111111', white: '#ffffff', navy: '#1e3a5f', grey: '#9ca3af', gray: '#9ca3af',
+      charcoal: '#36454f', beige: '#d8c3a5', cream: '#fffdd0', ivory: '#fffff0',
+      brown: '#6b3e26', tan: '#d2b48c', khaki: '#c3b091', olive: '#556b2f',
+      maroon: '#800000', burgundy: '#6d0f23', red: '#dc2626', wine: '#722f37',
+      pink: '#ec4899', rose: '#f43f5e', peach: '#ffcba4', orange: '#f97316',
+      mustard: '#e1ad01', yellow: '#eab308', gold: '#d4af37',
+      green: '#16a34a', 'forest green': '#228b22', mint: '#98ff98', teal: '#0d9488',
+      turquoise: '#40e0d0', blue: '#2563eb', 'sky blue': '#87ceeb', 'royal blue': '#4169e1',
+      indigo: '#4f46e5', purple: '#7c3aed', lavender: '#b57edc', lilac: '#c8a2c8',
+      multi: 'linear-gradient(135deg,#e94560,#2563eb,#eab308)',
+      print: 'linear-gradient(135deg,#9ca3af,#111)',
+      striped: 'repeating-linear-gradient(45deg,#111 0 4px,#fff 4px 8px)',
+      checked: 'repeating-linear-gradient(90deg,#111 0 4px,#fff 4px 8px)'
+    };
+    return map[key] || '#cbd5e1';
   }
 
   get categoryName(): string {
