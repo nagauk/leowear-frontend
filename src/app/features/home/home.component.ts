@@ -56,7 +56,7 @@ import { environment } from '../../../environments/environment';
           <!-- Left Column: Typography & Actions -->
           <div class="col-lg-6 text-center text-lg-start">
             <span class="hero-eyebrow d-inline-block px-3 py-1 rounded-pill mb-3 text-uppercase fw-semibold">
-              🇮🇳 Independence Day · 15 August
+              Launching Offer: flat 20% off <br/> CouponCode: FREEDOM20
             </span>
 
             <h1 class="display-2 fw-bold text-white mb-3 hero-title">
