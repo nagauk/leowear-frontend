@@ -175,7 +175,7 @@ import { environment } from '../../../environments/environment';
     }
 
     <!-- Categories -->
-    <section class="py-5">
+    <!--section class="py-5">
       <div class="container">
         <h2 class="section-title text-center">Shop by Category</h2>
         <p class="section-subtitle text-center">Men, Women, Kids &amp; more</p>
@@ -201,7 +201,7 @@ import { environment } from '../../../environments/environment';
           }
         </div>
       </div>
-    </section>
+    </section-->
 
     <!-- Featured -->
     <section class="py-5" style="background:#fff;">
