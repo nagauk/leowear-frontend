@@ -18,6 +18,13 @@ import { environment } from '../../../environments/environment';
   template: `
     <section class="hero-section position-relative overflow-hidden">
 
+      <!-- Tricolor strip across the top -->
+      <div class="hero-tricolor-strip" aria-hidden="true">
+        <div class="stripe saffron"></div>
+        <div class="stripe white"></div>
+        <div class="stripe green"></div>
+      </div>
+
       <!-- Grid Background with Men, Women & Kids Fashion -->
       <div class="hero-bg-grid position-absolute top-0 start-0 w-100 h-100 d-none d-md-grid">
         <div class="grid-tile tile-men"></div>
@@ -26,8 +33,21 @@ import { environment } from '../../../environments/environment';
         <div class="grid-tile tile-denim"></div>
       </div>
 
+      <!-- Soft tricolor glow -->
+      <div class="hero-tricolor-glow"></div>
+
       <!-- Gradient Overlay for High Text Readability -->
       <div class="hero-dark-overlay position-absolute top-0 start-0 w-100 h-100"></div>
+
+      <!-- Sparkles -->
+      <span class="sparkle s1"></span>
+      <span class="sparkle s2"></span>
+      <span class="sparkle s3"></span>
+      <span class="sparkle s4"></span>
+      <span class="sparkle s5"></span>
+
+      <!-- Launching offer ribbon -->
+      <span class="id-offer-ribbon">Launch Offer</span>
 
       <!-- Hero Content & Cards Layer -->
       <div class="container position-relative z-2 py-5 my-lg-4">
@@ -36,21 +56,21 @@ import { environment } from '../../../environments/environment';
           <!-- Left Column: Typography & Actions -->
           <div class="col-lg-6 text-center text-lg-start">
             <span class="hero-eyebrow d-inline-block px-3 py-1 rounded-pill mb-3 text-uppercase fw-semibold">
-              New Season · Spring '26
+              🇮🇳 Independence Day · 15 August
             </span>
 
             <h1 class="display-2 fw-bold text-white mb-3 hero-title">
-              Elevate Your<br>
-              <span class="text-accent">Style Everyday</span>
+              Celebrate Freedom<br>
+              <span class="text-accent">with Leo Wear</span>
             </h1>
 
             <p class="lead hero-description mb-4 pe-lg-4">
-              Discover <strong>Leo Wear</strong> — premium fashion for men, women &amp; kids. Comfort meets timeless design.
+              Honouring the heroes of our nation. Premium fashion for men, women &amp; kids — crafted with pride, made for India.
             </p>
 
             <div class="d-flex gap-3 justify-content-center justify-content-lg-start flex-wrap">
               <a routerLink="/products" class="btn btn-accent btn-lg px-4 py-3 fw-bold rounded-2">
-                Shop Now
+                Shop the Launch
               </a>
               <a routerLink="/products" [queryParams]="{search: 'Leo Wear'}" class="btn btn-outline-custom btn-lg px-4 py-3 fw-bold rounded-2">
                 Leo Wear Picks
@@ -58,49 +78,82 @@ import { environment } from '../../../environments/environment';
             </div>
           </div>
 
-          <!-- Right Column: Glassmorphism Info Cards -->
+          <!-- Right Column: Independence Day Launch Card -->
           <div class="col-lg-6 d-none d-lg-block">
-            <div class="hero-card-stack ms-auto me-lg-4">
+            <div class="id-card-stack ms-auto me-lg-4">
 
-              <div class="glass-info-card p-3 mb-3 rounded-3 d-flex align-items-center gap-3">
-                <div class="card-icon-box rounded-circle d-flex align-items-center justify-content-center">
+              <!-- Headline + flag + soldiers -->
+              <div class="id-headline">
+                <span class="aug-badge">
+                  <span class="dot"></span>
+                  AUG 15 · INDEPENDENCE DAY
+                </span>
+
+                <!-- Indian flag + salute soldiers -->
+                <div class="d-flex align-items-end justify-content-center gap-3 mt-3">
+                  <div class="hero-flag" aria-label="Indian Flag">
+                    <div class="band saffron"></div>
+                    <div class="band white"><div class="chakra"></div></div>
+                    <div class="band green"></div>
+                  </div>
+
+                  <div class="hero-soldiers">
+                    <div class="hero-soldier" aria-label="Soldier saluting">
+                      <svg viewBox="0 0 64 84" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                        <!-- Helmet -->
+                        <path d="M10 30 Q10 8 32 8 Q54 8 54 30 L54 36 L10 36 Z" fill="#4b5a2a"/>
+                        <rect x="10" y="34" width="44" height="4" fill="#2e3815"/>
+                        <!-- Face -->
+                        <ellipse cx="32" cy="44" rx="11" ry="12" fill="#e8b89a"/>
+                        <!-- Salute arm -->
+                        <path d="M48 42 L60 24 L62 28 L52 48 Z" fill="#e8b89a"/>
+                        <!-- Uniform body -->
+                        <path d="M14 56 Q14 48 32 48 Q50 48 50 56 L50 84 L14 84 Z" fill="#6b7d3f"/>
+                        <rect x="28" y="48" width="8" height="36" fill="#4b5a2a"/>
+                        <!-- Belt -->
+                        <rect x="14" y="68" width="36" height="4" fill="#2e3815"/>
+                        <!-- Boots -->
+                        <rect x="16" y="80" width="14" height="4" fill="#1a1a2e"/>
+                        <rect x="34" y="80" width="14" height="4" fill="#1a1a2e"/>
+                      </svg>
+                      <span class="soldier-salute">✋</span>
+                    </div>
+
+                    <div class="hero-soldier" aria-label="Soldier saluting">
+                      <svg viewBox="0 0 64 84" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                        <path d="M10 30 Q10 8 32 8 Q54 8 54 30 L54 36 L10 36 Z" fill="#4b5a2a"/>
+                        <rect x="10" y="34" width="44" height="4" fill="#2e3815"/>
+                        <ellipse cx="32" cy="44" rx="11" ry="12" fill="#dca37f"/>
+                        <path d="M16 42 L4 24 L2 28 L12 48 Z" fill="#dca37f"/>
+                        <path d="M14 56 Q14 48 32 48 Q50 48 50 56 L50 84 L14 84 Z" fill="#6b7d3f"/>
+                        <rect x="28" y="48" width="8" height="36" fill="#4b5a2a"/>
+                        <rect x="14" y="68" width="36" height="4" fill="#2e3815"/>
+                        <rect x="16" y="80" width="14" height="4" fill="#1a1a2e"/>
+                        <rect x="34" y="80" width="14" height="4" fill="#1a1a2e"/>
+                      </svg>
+                      <span class="soldier-salute">🎖️</span>
+                    </div>
+                  </div>
+                </div>
+
+                <h3 class="aug-title">Leo Wear <em>Launching</em> Offer</h3>
+                <p class="aug-sub">A tribute to India — style, pride &amp; freedom in every stitch.</p>
+              </div>
+
+              <!-- Coupon block -->
+              <div class="id-coupon">
+                <div class="coupon-icon">
                   <i class="bi bi-stars"></i>
                 </div>
-                <div>
-                  <strong class="d-block text-dark fw-bold">Our Choice</strong>
-                  <span class="text-secondary small">Hand-picked Leo Wear styles</span>
+                <div class="coupon-text">
+                  <small>Independence Day Offer</small>
+                  <h4>Flat 20% OFF</h4>
+                  <p>Use the code below at checkout — valid till 17 Aug.</p>
                 </div>
+                <div class="coupon-code" title="Click to copy" role="button" tabindex="0">FREEDOM20</div>
               </div>
 
-              <div class="glass-info-card p-3 mb-3 rounded-3 d-flex align-items-center gap-3">
-                <div class="card-icon-box rounded-circle d-flex align-items-center justify-content-center">
-                  <i class="bi bi-truck"></i>
-                </div>
-                <div>
-                  <strong class="d-block text-dark fw-bold">Free Shipping</strong>
-                  <span class="text-secondary small">{{ 'Over ₹' + (freeDeliveryMin | number:'1.0-0') }}</span>
-                </div>
-              </div>
 
-              <div class="glass-info-card p-3 mb-3 rounded-3 d-flex align-items-center gap-3">
-                <div class="card-icon-box rounded-circle d-flex align-items-center justify-content-center">
-                  <i class="bi bi-arrow-repeat"></i>
-                </div>
-                <div>
-                  <strong class="d-block text-dark fw-bold">Easy Returns</strong>
-                  <span class="text-secondary small">7-day window*</span>
-                </div>
-              </div>
-
-              <div class="glass-info-card p-3 rounded-3 d-flex align-items-center gap-3">
-                <div class="card-icon-box rounded-circle d-flex align-items-center justify-content-center">
-                  <i class="bi bi-shield-check"></i>
-                </div>
-                <div>
-                  <strong class="d-block text-dark fw-bold">Secure Checkout</strong>
-                  <span class="text-secondary small">Verified payments</span>
-                </div>
-              </div>
 
             </div>
           </div>
