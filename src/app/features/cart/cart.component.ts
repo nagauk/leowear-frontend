@@ -155,12 +155,23 @@ import { CartItem } from '../../core/models/models';
                       </button>
                     </div>
                   }
+
                   @if (couponMsg) {
-                    <div class="small mt-1"
-                         [class.text-danger]="couponMsgType === 'err'"
-                         [class.text-success]="couponMsgType === 'ok'">
-                      {{ couponMsg }}
-                    </div>
+                      @if (!auth.isLoggedIn()){
+                                            <div class="small mt-1"
+                                                                     [class.text-danger]="couponMsgType === 'err'"
+                                                                     [class.text-success]="couponMsgType === 'ok'">
+                                                                  Please login to have discount.
+
+                                                                </div>
+                                            } @else{
+                                                <div class="small mt-1"
+                                                                         [class.text-danger]="couponMsgType === 'err'"
+                                                                         [class.text-success]="couponMsgType === 'ok'">
+                                                                      {{ couponMsg }}
+                                                                    </div>
+                                                }
+
                   }
                 </div>
 
