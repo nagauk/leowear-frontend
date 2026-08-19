@@ -18,14 +18,7 @@ import { environment } from '../../../environments/environment';
   template: `
     <section class="hero-section position-relative overflow-hidden">
 
-      <!-- Tricolor strip across the top -->
-      <div class="hero-tricolor-strip" aria-hidden="true">
-        <div class="stripe saffron"></div>
-        <div class="stripe white"></div>
-        <div class="stripe green"></div>
-      </div>
-
-      <!-- Grid Background with Men, Women & Kids Fashion -->
+      <!-- 4-tile fashion image grid (kept from earlier) -->
       <div class="hero-bg-grid position-absolute top-0 start-0 w-100 h-100 d-none d-md-grid">
         <div class="grid-tile tile-men"></div>
         <div class="grid-tile tile-women"></div>
@@ -33,133 +26,134 @@ import { environment } from '../../../environments/environment';
         <div class="grid-tile tile-denim"></div>
       </div>
 
-      <!-- Soft tricolor glow -->
-      <div class="hero-tricolor-glow"></div>
+      <!-- Colourful aurora wash on top of the images -->
+      <div class="hero-aurora" aria-hidden="true">
+        <span class="orb orb-1"></span>
+        <span class="orb orb-2"></span>
+        <span class="orb orb-3"></span>
+        <span class="orb orb-4"></span>
+        <span class="orb orb-5"></span>
+      </div>
 
-      <!-- Gradient Overlay for High Text Readability -->
+      <!-- Dark gradient for readable text -->
       <div class="hero-dark-overlay position-absolute top-0 start-0 w-100 h-100"></div>
 
-      <!-- Sparkles -->
+      <!-- Subtle dotted grid texture -->
+      <div class="hero-grid-pattern" aria-hidden="true"></div>
+
+      <!-- Floating colour tags -->
+      <span class="float-tag tag-1">#Trending</span>
+      <span class="float-tag tag-2">New Drop ✨</span>
+      <span class="float-tag tag-3">Members -20%</span>
+
+      <!-- Roaming sparkles (kept from earlier, more of them, colourful) -->
       <span class="sparkle s1"></span>
       <span class="sparkle s2"></span>
       <span class="sparkle s3"></span>
       <span class="sparkle s4"></span>
       <span class="sparkle s5"></span>
+      <span class="sparkle s6"></span>
+      <span class="sparkle s7"></span>
+      <span class="sparkle s8"></span>
+      <span class="sparkle s9"></span>
+      <span class="sparkle s10"></span>
 
-      <!-- Launching offer ribbon -->
-      <span class="id-offer-ribbon">Launch Offer</span>
-
-      <!-- Hero Content & Cards Layer -->
+      <!-- Hero Content -->
       <div class="container position-relative z-2 py-5 my-lg-4">
         <div class="row align-items-center g-4">
 
           <!-- Left Column: Typography & Actions -->
-          <div class="col-lg-6 text-center text-lg-start">
-            <span class="hero-eyebrow d-inline-block px-3 py-1 rounded-pill mb-3 text-uppercase fw-semibold">
-              Launching Offer: flat 20% off <br/> CouponCode: FREEDOM20
-            </span>
-
-            <h1 class="display-2 fw-bold text-white mb-3 hero-title">
-              Celebrate Freedom<br>
-              <span class="text-accent">with Leo Wear</span>
+          <div class="col-lg-7 text-center text-lg-start">
+            <h1 class="hero-title">
+              <span class="title-line title-light">Wear the</span>
+              <span class="title-line title-gradient">Colours of</span>
+              <span class="title-line title-light">Confidence</span>
             </h1>
 
-            <p class="lead hero-description mb-4 pe-lg-4">
-              Honouring the heroes of our nation. Premium fashion for men, women &amp; kids — crafted with pride, made for India.
+            <p class="hero-description">
+              Bold styles for <strong>Men</strong>, <strong>Women</strong> &amp; <strong>Kids</strong> — crafted in India, designed to turn every street into your runway.
             </p>
-
-            <div class="d-flex gap-3 justify-content-center justify-content-lg-start flex-wrap">
-              <a routerLink="/products" class="btn btn-accent btn-lg px-4 py-3 fw-bold rounded-2">
-                Shop the Launch
-              </a>
-              <a routerLink="/products" [queryParams]="{search: 'Leo Wear'}" class="btn btn-outline-custom btn-lg px-4 py-3 fw-bold rounded-2">
-                Leo Wear Picks
-              </a>
+            <!-- Trust strip -->
+            <div class="hero-trust">
+              <div class="trust-item">
+                <span class="trust-icon" style="background: linear-gradient(135deg,#ff7a59,#ff2d87);">
+                  <i class="bi bi-truck"></i>
+                </span>
+                <div>
+                  <strong>Free Shipping</strong>
+                  <small>Orders over ₹{{ freeDeliveryMin | number:'1.0-0' }}</small>
+                </div>
+              </div>
+              <div class="trust-item">
+                <span class="trust-icon" style="background: linear-gradient(135deg,#7c3aed,#22d3ee);">
+                  <i class="bi bi-shield-check"></i>
+                </span>
+                <div>
+                  <strong>Secure Pay</strong>
+                  <small>100% protected</small>
+                </div>
+              </div>
+              <div class="trust-item">
+                <span class="trust-icon" style="background: linear-gradient(135deg,#10b981,#22d3ee);">
+                  <i class="bi bi-arrow-repeat"></i>
+                </span>
+                <div>
+                  <strong>Easy Returns</strong>
+                  <small>7-day policy</small>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Right Column: Independence Day Launch Card -->
-          <div class="col-lg-6 d-none d-lg-block">
-            <div class="id-card-stack ms-auto me-lg-4">
+          <!-- Right Column: Floating Product / Category Showcase -->
+          <div class="col-lg-5 d-none d-lg-block">
+            <div class="hero-showcase">
 
-              <!-- Headline + flag + soldiers -->
-              <div class="id-headline">
-                <span class="aug-badge">
-                  <span class="dot"></span>
-                  AUG 15 · INDEPENDENCE DAY
-                </span>
-
-                <!-- Indian flag + salute soldiers -->
-                <div class="d-flex align-items-end justify-content-center gap-3 mt-3">
-                  <div class="hero-flag" aria-label="Indian Flag">
-                    <div class="band saffron"></div>
-                    <div class="band white"><div class="chakra"></div></div>
-                    <div class="band green"></div>
-                  </div>
-
-                  <div class="hero-soldiers">
-                    <div class="hero-soldier" aria-label="Soldier saluting">
-                      <svg viewBox="0 0 64 84" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-                        <!-- Helmet -->
-                        <path d="M10 30 Q10 8 32 8 Q54 8 54 30 L54 36 L10 36 Z" fill="#4b5a2a"/>
-                        <rect x="10" y="34" width="44" height="4" fill="#2e3815"/>
-                        <!-- Face -->
-                        <ellipse cx="32" cy="44" rx="11" ry="12" fill="#e8b89a"/>
-                        <!-- Salute arm -->
-                        <path d="M48 42 L60 24 L62 28 L52 48 Z" fill="#e8b89a"/>
-                        <!-- Uniform body -->
-                        <path d="M14 56 Q14 48 32 48 Q50 48 50 56 L50 84 L14 84 Z" fill="#6b7d3f"/>
-                        <rect x="28" y="48" width="8" height="36" fill="#4b5a2a"/>
-                        <!-- Belt -->
-                        <rect x="14" y="68" width="36" height="4" fill="#2e3815"/>
-                        <!-- Boots -->
-                        <rect x="16" y="80" width="14" height="4" fill="#1a1a2e"/>
-                        <rect x="34" y="80" width="14" height="4" fill="#1a1a2e"/>
-                      </svg>
-                      <span class="soldier-salute">✋</span>
-                    </div>
-
-                    <div class="hero-soldier" aria-label="Soldier saluting">
-                      <svg viewBox="0 0 64 84" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-                        <path d="M10 30 Q10 8 32 8 Q54 8 54 30 L54 36 L10 36 Z" fill="#4b5a2a"/>
-                        <rect x="10" y="34" width="44" height="4" fill="#2e3815"/>
-                        <ellipse cx="32" cy="44" rx="11" ry="12" fill="#dca37f"/>
-                        <path d="M16 42 L4 24 L2 28 L12 48 Z" fill="#dca37f"/>
-                        <path d="M14 56 Q14 48 32 48 Q50 48 50 56 L50 84 L14 84 Z" fill="#6b7d3f"/>
-                        <rect x="28" y="48" width="8" height="36" fill="#4b5a2a"/>
-                        <rect x="14" y="68" width="36" height="4" fill="#2e3815"/>
-                        <rect x="16" y="80" width="14" height="4" fill="#1a1a2e"/>
-                        <rect x="34" y="80" width="14" height="4" fill="#1a1a2e"/>
-                      </svg>
-                      <span class="soldier-salute">🎖️</span>
-                    </div>
-                  </div>
+              <!-- Main big card -->
+              <div class="showcase-card showcase-main">
+                <span class="showcase-badge">Hot</span>
+                <div class="showcase-img showcase-img-men"></div>
+                <div class="showcase-meta">
+                  <small>Men's Streetwear</small>
+                  <strong>From ₹799</strong>
                 </div>
-
-                <h3 class="aug-title">Leo Wear <em>Launching</em> Offer</h3>
-                <p class="aug-sub">A tribute to India — style, pride &amp; freedom in every stitch.</p>
               </div>
 
-              <!-- Coupon block -->
-              <div class="id-coupon">
-                <div class="coupon-icon">
-                  <i class="bi bi-stars"></i>
+              <!-- Top-right small card -->
+              <div class="showcase-card showcase-top">
+                <div class="showcase-img showcase-img-women"></div>
+                <div class="showcase-meta">
+                  <small>Women</small>
+                  <strong>New Drop</strong>
                 </div>
-                <div class="coupon-text">
-                  <small>Independence Day Offer</small>
-                  <h4>Flat 20% OFF</h4>
-                  <p>Use the code below at checkout — valid till 17 Aug.</p>
-                </div>
-                <div class="coupon-code" title="Click to copy" role="button" tabindex="0">FREEDOM20</div>
               </div>
 
+              <!-- Bottom-right small card -->
+              <div class="showcase-card showcase-bottom">
+                <div class="showcase-img showcase-img-kids"></div>
+                <div class="showcase-meta">
+                  <small>Kids</small>
+                  <strong>Flat 30% Off</strong>
+                </div>
+              </div>
 
+              <!-- Floating sale bubble -->
+              <div class="showcase-bubble">
+                <span>UP TO</span>
+                <strong>50%</strong>
+                <small>OFF</small>
+              </div>
 
             </div>
           </div>
 
         </div>
       </div>
+
+      <!-- Wave divider -->
+      <svg class="hero-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="#ffffff"/>
+      </svg>
     </section>
 
     <!-- Loved items -->
