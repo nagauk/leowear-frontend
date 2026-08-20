@@ -12,10 +12,38 @@ import { WishlistService } from './core/services/wishlist.service';
   template: `
     <nav class="navbar navbar-expand-lg cs-navbar">
       <div class="container">
-        <a class="navbar-brand" routerLink="/"><img src="/assets/img/leowearlogo.png" height="66" class="brand-logo"/></a>
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+        <a class="navbar-brand" routerLink="/">
+          <img src="/assets/img/leowearlogo.png" height="66" class="brand-logo" alt="Leo Wear"/>
+        </a>
+
+        <!-- Always-visible icons (wishlist + cart) — stay outside the collapse -->
+        @if (!auth.isStaff()) {
+          <div class="d-flex align-items-center gap-2 ms-auto me-2 order-lg-last">
+            <a routerLink="/wishlist"
+               class="btn btn-link text-white text-decoration-none btn-cart position-relative p-1"
+               title="Wishlist">
+              <i class="bi bi-heart fs-5"></i>
+              @if (wishlist.count() > 0) {
+                <span class="badge">{{ wishlist.count() }}</span>
+              }
+            </a>
+            <a routerLink="/cart"
+               class="btn btn-link text-white text-decoration-none btn-cart position-relative p-1"
+               title="Cart">
+              <i class="bi bi-bag fs-5"></i>
+              @if (cart.itemCount() > 0) {
+                <span class="badge">{{ cart.itemCount() }}</span>
+              }
+            </a>
+          </div>
+        }
+
+        <button class="navbar-toggler border-0" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navMain"
+                aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
           <i class="bi bi-list text-white fs-3"></i>
         </button>
+
         <div class="collapse navbar-collapse" id="navMain">
           <ul class="navbar-nav me-auto ms-lg-4">
             @if (auth.isAdmin()) {
@@ -30,30 +58,20 @@ import { WishlistService } from './core/services/wishlist.service';
               <li class="nav-item"><a class="nav-link" routerLink="/admin/orders" routerLinkActive="active">Orders</a></li>
               <li class="nav-item"><a class="nav-link" routerLink="/admin/settings" routerLinkActive="active">Complaints</a></li>
             } @else {
-              <li class="nav-item"><a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Home</a></li>
+              <li class="nav-item">
+                <a class="nav-link" routerLink="/" routerLinkActive="active"
+                   [routerLinkActiveOptions]="{exact:true}">Home</a>
+              </li>
               <li class="nav-item"><a class="nav-link" routerLink="/products" routerLinkActive="active">Shop</a></li>
               @if (auth.isLoggedIn()) {
                 <li class="nav-item"><a class="nav-link" routerLink="/orders" routerLinkActive="active">My Orders</a></li>
-                <!--li class="nav-item"><a class="nav-link" routerLink="/returns" routerLinkActive="active">Returns</a></li-->
               }
               <li class="nav-item"><a class="nav-link" routerLink="/feedback" routerLinkActive="active">Feedback</a></li>
             }
           </ul>
-          <div class="d-flex align-items-center gap-3">
-            @if (!auth.isStaff()) {
-              <a routerLink="/wishlist" class="btn btn-link text-white text-decoration-none btn-cart position-relative" title="Wishlist">
-                <i class="bi bi-heart fs-5"></i>
-                @if (wishlist.count() > 0) {
-                  <span class="badge">{{ wishlist.count() }}</span>
-                }
-              </a>
-              <a routerLink="/cart" class="btn btn-link text-white text-decoration-none btn-cart position-relative" title="Cart">
-                <i class="bi bi-bag fs-5"></i>
-                @if (cart.itemCount() > 0) {
-                  <span class="badge">{{ cart.itemCount() }}</span>
-                }
-              </a>
-            }
+
+          <!-- Auth controls only (login / user menu) stay inside the collapse -->
+          <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
             @if (auth.isLoggedIn()) {
               <div class="dropdown">
                 <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button"
@@ -79,9 +97,11 @@ import { WishlistService } from './core/services/wishlist.service';
                     <li><a class="dropdown-item" routerLink="/change-password"><i class="bi bi-key me-2"></i>Password</a></li>
                     <li><hr class="dropdown-divider"></li>
                   }
-                  <li><button class="dropdown-item text-danger" type="button" (click)="auth.logout()">
-                    <i class="bi bi-box-arrow-right me-2"></i>Logout
-                  </button></li>
+                  <li>
+                    <button class="dropdown-item text-danger" type="button" (click)="auth.logout()">
+                      <i class="bi bi-box-arrow-right me-2"></i>Logout
+                    </button>
+                  </li>
                 </ul>
               </div>
             } @else {
@@ -125,7 +145,6 @@ import { WishlistService } from './core/services/wishlist.service';
           </div>
           <div class="col-md-3">
             <h5>Contact</h5>
-            <!--p class="small mb-1"><i class="bi bi-envelope me-2"></i>hello&#64;clothstore.com</p-->
             <p class="small"><i class="bi bi-telephone me-2"></i>+91 7989398156</p>
           </div>
         </div>
@@ -137,5 +156,9 @@ import { WishlistService } from './core/services/wishlist.service';
   `
 })
 export class AppComponent {
-  constructor(public auth: AuthService, public cart: CartService, public wishlist: WishlistService) {}
+  constructor(
+    public auth: AuthService,
+    public cart: CartService,
+    public wishlist: WishlistService
+  ) {}
 }
